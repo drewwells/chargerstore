@@ -3,6 +3,7 @@ package chargerstore
 import (
 	"encoding/json"
 	"log"
+	"time"
 
 	"cloud.google.com/go/pubsub"
 	"golang.org/x/net/context"
@@ -11,6 +12,7 @@ import (
 type Options struct {
 	ps                 *pubsub.Client
 	subName, topicName string
+	topic              *pubsub.Topic
 }
 
 func NewPS() (*Options, error) {
@@ -31,6 +33,7 @@ func (o *Options) Subscribe(subName string, topicName string) {
 		log.Fatal(err)
 	}
 
+	o.topic = topic
 	sub, err := o.ps.CreateSubscription(ctx, subName, topic, 0, nil)
 	if err != nil {
 		log.Fatal(err)
@@ -52,7 +55,13 @@ func (o *Options) getTopic(ctx context.Context, topicName string) (*pubsub.Topic
 	return topic, nil
 }
 
-//{"data":"{\"VEHICLE_SPEED\":-1.000000,\"AMBIENT_AIR_TEMPERATURE\":20.000000,\"CONTROL_MODULE_VOLTAGE\":-1.000000,\"FUEL_TANK_LEVEL_INPUT\":-1.000000,\"CHARGE_AMPS_IN\":0.000000,\"CHARGER_VOLTS_IN\":0.000000,\"EXTENDED_HYBRID_BATTERY_PACK_REMAINING_LIFE\":-1.000000}","ttl":"60","published_at":"2017-04-08T04:29:37.004Z","coreid":"520041000351353337353037","name":"CAR"}
+type CarMsgMeta struct {
+	Data        CarMsg `json:"data"`
+	TTL         int
+	PublishedAt time.Time `json:"published_at"`
+	Name        string    `json:"name"`
+	CoreID      string    `json:"coreid"`
+}
 
 type CarMsg struct {
 	VehicleSpeed float32 `json:"VEHICLE_SPEED"`
@@ -69,7 +78,7 @@ func (o *Options) subscribe(sub *pubsub.Subscription) {
 	err := sub.Receive(ctx, func(ctx context.Context, msg *pubsub.Message) {
 
 		log.Printf("% #v\n", msg)
-		var cm CarMsg
+		var cm CarMsgMeta
 		if err := json.Unmarshal(msg.Data, &cm); err != nil {
 			log.Printf("could not decode message data: %#v", msg)
 			msg.Ack()
