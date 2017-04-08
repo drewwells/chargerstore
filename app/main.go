@@ -10,6 +10,7 @@ import (
 	"google.golang.org/appengine/log"
 
 	"github.com/drewwells/chargerstore"
+	"github.com/drewwells/chargerstore/types"
 )
 
 func main() {
@@ -24,16 +25,31 @@ func init() {
 	// }
 
 	//opts.Subscribe("CAR", "carpull")
-	serve()
 	http.HandleFunc("/pubsub/push", pushHandler)
+	http.HandleFunc("/summary", summaryHandler)
+	http.HandleFunc("/car/id/laststatus", lastStatusHandler)
+	http.HandleFunc("/car/id/chargerate", rateHandler)
+	http.HandleFunc("/car/id/battery", batteryStatusHandler)
 }
 
-func serve() {
-	// [START http]
-	// Publish a count of processed requests to the server homepage.
-	http.HandleFunc("/summary", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "This worker has processed %d events.", chargerstore.Count())
-	})
+func lastStatusHandler(w http.ResponseWriter, r *http.Request) {
+	resp := make(map[string]types.LastMsg)
+	resp["Amps"] = chargerstore.LastAmps
+	resp["Volts"] = chargerstore.LastVolts
+	resp["Battery"] = chargerstore.LastBattery
+	bs, _ := json.Marshal(resp)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(bs)
+}
+
+func batteryStatusHandler(w http.ResponseWriter, r *http.Request) {
+}
+
+func rateHandler(w http.ResponseWriter, r *http.Request) {
+}
+
+func summaryHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "This worker has processed %d events.", chargerstore.Count())
 }
 
 const maxMessages = 10
@@ -46,7 +62,7 @@ var (
 
 func pushHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := appengine.NewContext(r)
-	var req chargerstore.PushRequest
+	var req types.PushRequest
 	defer r.Body.Close()
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		err := fmt.Errorf("Could not decode body: %v", err)

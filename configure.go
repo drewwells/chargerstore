@@ -6,7 +6,8 @@ import (
 	"fmt"
 	"log"
 	"sync"
-	"time"
+
+	"github.com/drewwells/chargerstore/types"
 
 	"google.golang.org/appengine/datastore"
 
@@ -64,20 +65,6 @@ func (o *Options) getTopic(ctx context.Context, subName, topicName string) (*pub
 	return o.ps.Topic(subName), nil
 }
 
-// CarMsg is the format incoming from particle
-type CarMsg struct {
-	VehicleSpeed float32   `json:"VEHICLE_SPEED"`
-	AirTemp      float32   `json:"AMBIENT_AIR_TEMPERATURE"`
-	CMV          float32   `json:"CONTROL_MODULE_VOLTAGE"`
-	Fuel         float32   `json:"FUEL_TANK_LEVEL_INPUT"`
-	ChargerAmps  float32   `json:"CHARGER_AMPS_IN"`
-	ChargerVolts float32   `json:"CHARGER_VOLTS_IN"`
-	Battery      float32   `json:"EXTENDED_HYBRID_BATTERY_REMAINING_LIFE"`
-	PublishTime  time.Time `json:"publish_time"`
-	Event        string    `json:"event"`
-	DeviceID     string    `json:"device_id"`
-}
-
 var (
 	muCount sync.RWMutex
 	count   int64
@@ -89,28 +76,8 @@ func Count() int64 {
 	return count
 }
 
-// {
-//   "message": {
-//     "data": "eyJWRUhJQ0xFX1NQRUVEIjotMS4wMDAwMDAsIkFNQklFTlRfQUlSX1RFTVBFUkFUVVJFIjoyNy4wMDAwMDAsIkNPTlRST0xfTU9EVUxFX1ZPTFRBR0UiOi0xLjAwMDAwMCwiRlVFTF9UQU5LX0xFVkVMX0lOUFVUIjotMS4wMDAwMDAsIkNIQVJHRV9BTVBTX0lOIjo4LjAwMDAwMCwiQ0hBUkdFUl9WT0xUU19JTiI6MTE0LjAwMDAwMCwiRVhURU5ERURfSFlCUklEX0JBVFRFUllfUEFDS19SRU1BSU5JTkdfTElGRSI6LTEuMDAwMDAwfQ==",
-//     "attributes": {
-//       "device_id": "520041000351353337353037",
-//       "event": "CAR",
-//       "published_at": "2017-04-08T18:55:31.839Z"
-//     },
-//     "message_id": "68413786577982",
-//     "messageId": "68413786577982",
-//     "publish_time": "2017-04-08T18:55:32.029Z",
-//     "publishTime": "2017-04-08T18:55:32.029Z"
-//   },
-//   "subscription": "projects/particle-volt/subscriptions/carpull"
-// }
-type PushRequest struct {
-	Message      *pubsub.Message `json:"message"`
-	Subscription string
-}
-
-func Process(ctx context.Context, msg *pubsub.Message) (CarMsg, error) {
-	var cm CarMsg
+func Process(ctx context.Context, msg *pubsub.Message) (types.CarMsg, error) {
+	var cm types.CarMsg
 	if msg == nil {
 		return cm, errors.New("empty message")
 	}
@@ -135,7 +102,33 @@ func Process(ctx context.Context, msg *pubsub.Message) (CarMsg, error) {
 		return cm, fmt.Errorf("failed to save %s: %s", msg.ID, err)
 	}
 
+	processLastMsg(cm)
+
 	return cm, nil
+}
+
+func processLastMsg(cm types.CarMsg) {
+	// battery tends to report 0, probably an error on C side
+	if cm.Battery > 0 {
+		LastBattery = types.LastMsg{
+			Data:        cm.Battery,
+			PublishTime: cm.PublishTime,
+		}
+	}
+
+	if cm.ChargerAmps > -1 {
+		LastAmps = types.LastMsg{
+			Data:        cm.ChargerAmps,
+			PublishTime: cm.PublishTime,
+		}
+	}
+
+	if cm.ChargerVolts > -1 {
+		LastVolts = types.LastMsg{
+			Data:        cm.ChargerVolts,
+			PublishTime: cm.PublishTime,
+		}
+	}
 }
 
 func (o *Options) subscribe(sub *pubsub.Subscription) {
