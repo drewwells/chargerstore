@@ -18,55 +18,44 @@ func main() {
 
 func init() {
 
-	opts, err := chargerstore.NewPS()
-	if err != nil {
-		log.Fatal(err)
-	}
+	// opts, err := chargerstore.NewPS()
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 
-	opts.Subscribe("CAR", "carpull")
-	serve(opts)
-	//http.HandleFunc("/pubsub/push", pushHandler)
+	//opts.Subscribe("CAR", "carpull")
+	serve()
+	http.HandleFunc("/pubsub/push", pushHandler)
 }
 
-func serve(opts *chargerstore.Options) {
+func serve() {
 	// [START http]
 	// Publish a count of processed requests to the server homepage.
 	http.HandleFunc("/summary", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "This worker has processed %d events.", opts.Count())
+		fmt.Fprintf(w, "This worker has processed %d events.", chargerstore.Count())
 	})
-}
-
-type pushRequest struct {
-	Message struct {
-		Attributes map[string]string
-		Data       []byte
-		ID         string `json:"message_id"`
-	}
-	Subscription string
 }
 
 const maxMessages = 10
 
 var (
-
 	// Messages received by this instance.
 	messagesMu sync.Mutex
 	messages   []string
 )
 
 func pushHandler(w http.ResponseWriter, r *http.Request) {
-	log.Println("path", r.URL)
-	var msg pushRequest
-	if err := json.NewDecoder(r.Body).Decode(&msg); err != nil {
+	ctx := appengine.NewContext(r)
+	var req chargerstore.PushRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, fmt.Sprintf("Could not decode body: %v", err), http.StatusBadRequest)
 		return
 	}
 
-	messagesMu.Lock()
-	defer messagesMu.Unlock()
-	// Limit to ten.
-	messages = append(messages, string(msg.Message.Data))
-	if len(messages) > maxMessages {
-		messages = messages[len(messages)-maxMessages:]
+	msg, err := chargerstore.Process(ctx, req.Message)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("failed to process msg: %s", err), http.StatusInternalServerError)
+		return
 	}
+	log.Println("processed message from", msg.DeviceID)
 }

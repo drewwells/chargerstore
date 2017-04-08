@@ -2,6 +2,7 @@ package chargerstore
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"sync"
 	"time"
@@ -76,32 +77,59 @@ type CarMsg struct {
 	DeviceID     string    `json:"device_id"`
 }
 
+var (
+	muCount sync.RWMutex
+	count   int64
+)
+
+func Count() int64 {
+	muCount.RLock()
+	defer muCount.RUnlock()
+	return count
+}
+
+type PushRequest struct {
+	Message      *pubsub.Message
+	Subscription string
+}
+
+func Process(ctx context.Context, msg *pubsub.Message) (CarMsg, error) {
+	var cm CarMsg
+	if err := json.Unmarshal(msg.Data, &cm); err != nil {
+		err := fmt.Errorf("could not decode message data: %#v", msg)
+		log.Println(err)
+		msg.Ack()
+		return cm, err
+	}
+	cm.PublishTime = msg.PublishTime
+	cm.Event = msg.Attributes["event"]
+	cm.DeviceID = msg.Attributes["device_id"]
+
+	muCount.Lock()
+	count++
+	muCount.Unlock()
+
+	msg.Ack()
+	log.Printf("received %#v\n", cm)
+	//k := datastore.NewKey(ctx, carbucket, msg.ID, 0, nil)
+	k := datastore.NewIncompleteKey(ctx, carbucket, nil)
+	if _, err := datastore.Put(ctx, k, &cm); err != nil {
+		// Handle err
+		return cm, fmt.Errorf("failed to save %s: %s", msg.ID, err)
+	}
+
+	return cm, nil
+}
+
 func (o *Options) subscribe(sub *pubsub.Subscription) {
 	ctx := context.Background()
 	err := sub.Receive(ctx, func(ctx context.Context, msg *pubsub.Message) {
 
-		var cm CarMsg
-		if err := json.Unmarshal(msg.Data, &cm); err != nil {
-			log.Printf("could not decode message data: %#v", msg)
-			msg.Ack()
-			return
+		_, err := Process(ctx, msg)
+		if err != nil {
+			log.Printf("failed to process msg: %s", err)
 		}
-		cm.PublishTime = msg.PublishTime
-		cm.Event = msg.Attributes["event"]
-		cm.DeviceID = msg.Attributes["device_id"]
 
-		o.muCount.Lock()
-		o.count++
-		o.muCount.Unlock()
-
-		msg.Ack()
-		log.Printf("received %#v\n", cm)
-		//k := datastore.NewKey(ctx, carbucket, msg.ID, 0, nil)
-		k := datastore.NewIncompleteKey(ctx, carbucket, nil)
-		if _, err := datastore.Put(ctx, k, &cm); err != nil {
-			// Handle err
-			log.Printf("failed to save %s: %s", msg.ID, err)
-		}
 	})
 	if err != nil {
 		log.Printf("error receiving event: %s", err)
