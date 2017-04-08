@@ -89,8 +89,23 @@ func Count() int64 {
 	return count
 }
 
+// {
+//   "message": {
+//     "data": "eyJWRUhJQ0xFX1NQRUVEIjotMS4wMDAwMDAsIkFNQklFTlRfQUlSX1RFTVBFUkFUVVJFIjoyNy4wMDAwMDAsIkNPTlRST0xfTU9EVUxFX1ZPTFRBR0UiOi0xLjAwMDAwMCwiRlVFTF9UQU5LX0xFVkVMX0lOUFVUIjotMS4wMDAwMDAsIkNIQVJHRV9BTVBTX0lOIjo4LjAwMDAwMCwiQ0hBUkdFUl9WT0xUU19JTiI6MTE0LjAwMDAwMCwiRVhURU5ERURfSFlCUklEX0JBVFRFUllfUEFDS19SRU1BSU5JTkdfTElGRSI6LTEuMDAwMDAwfQ==",
+//     "attributes": {
+//       "device_id": "520041000351353337353037",
+//       "event": "CAR",
+//       "published_at": "2017-04-08T18:55:31.839Z"
+//     },
+//     "message_id": "68413786577982",
+//     "messageId": "68413786577982",
+//     "publish_time": "2017-04-08T18:55:32.029Z",
+//     "publishTime": "2017-04-08T18:55:32.029Z"
+//   },
+//   "subscription": "projects/particle-volt/subscriptions/carpull"
+// }
 type PushRequest struct {
-	Message      *pubsub.Message
+	Message      *pubsub.Message `json:"message"`
 	Subscription string
 }
 
@@ -102,7 +117,6 @@ func Process(ctx context.Context, msg *pubsub.Message) (CarMsg, error) {
 	if err := json.Unmarshal(msg.Data, &cm); err != nil {
 		err := fmt.Errorf("could not decode message data: %#v", msg)
 		log.Println(err)
-		msg.Ack()
 		return cm, err
 	}
 	cm.PublishTime = msg.PublishTime
@@ -113,7 +127,6 @@ func Process(ctx context.Context, msg *pubsub.Message) (CarMsg, error) {
 	count++
 	muCount.Unlock()
 
-	msg.Ack()
 	log.Printf("received %#v\n", cm)
 	//k := datastore.NewKey(ctx, carbucket, msg.ID, 0, nil)
 	k := datastore.NewIncompleteKey(ctx, carbucket, nil)

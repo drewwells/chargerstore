@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"sync"
 
@@ -48,8 +47,6 @@ var (
 func pushHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := appengine.NewContext(r)
 	var req chargerstore.PushRequest
-	bs, _ := ioutil.ReadAll(r.Body)
-	log.Infof(ctx, "incoming", string(bs))
 	defer r.Body.Close()
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		err := fmt.Errorf("Could not decode body: %v", err)
