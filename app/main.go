@@ -3,11 +3,12 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
+	"io/ioutil"
 	"net/http"
 	"sync"
 
 	"google.golang.org/appengine"
+	"google.golang.org/appengine/log"
 
 	"github.com/drewwells/chargerstore"
 )
@@ -47,15 +48,22 @@ var (
 func pushHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := appengine.NewContext(r)
 	var req chargerstore.PushRequest
+	bs, _ := ioutil.ReadAll(r.Body)
+	log.Infof(ctx, "incoming", string(bs))
+	defer r.Body.Close()
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, fmt.Sprintf("Could not decode body: %v", err), http.StatusBadRequest)
+		err := fmt.Errorf("Could not decode body: %v", err)
+		log.Errorf(ctx, "%s", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
+	log.Infof(ctx, "request % #v\n", req)
 	msg, err := chargerstore.Process(ctx, req.Message)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("failed to process msg: %s", err), http.StatusInternalServerError)
+		err := fmt.Errorf("failed to process msg: %s", err)
+		log.Errorf(ctx, "%s", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	log.Println("processed message from", msg.DeviceID)
+	log.Infof(ctx, "processed message from: %s", msg.DeviceID)
 }

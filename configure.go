@@ -2,6 +2,7 @@ package chargerstore
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"sync"
@@ -95,6 +96,9 @@ type PushRequest struct {
 
 func Process(ctx context.Context, msg *pubsub.Message) (CarMsg, error) {
 	var cm CarMsg
+	if msg == nil {
+		return cm, errors.New("empty message")
+	}
 	if err := json.Unmarshal(msg.Data, &cm); err != nil {
 		err := fmt.Errorf("could not decode message data: %#v", msg)
 		log.Println(err)
