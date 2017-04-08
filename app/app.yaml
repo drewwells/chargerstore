@@ -1,7 +1,10 @@
 runtime: go
 api_version: go1
 
+env_variables:
+  GCLOUD_PROJECT: particle-volt
+  PUBSUB_TOPIC: CAR
+
 handlers:
 - url: /.*
   script: _go_app
-
