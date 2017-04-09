@@ -26,7 +26,7 @@ func Power(amp float32, volt float32) float32 {
 // Remaining determines the amount of time remaining to charge to full
 func Remaining(currentPct float32, power float32) time.Duration {
 	if power == 0 {
-		return time.Duration(-1)
+		return time.Duration(-1 * time.Minute)
 	}
 	deficitPwr := (MAX_PCT - currentPct) * MAX_POWER
 	hours := (deficitPwr * 1000) / power
