@@ -64,7 +64,7 @@ func batteryStatusHandler(w http.ResponseWriter, r *http.Request) {
 		ChargeRate float32 `json:"charge_rate"`
 	}{
 		Minutes:    timeToCharge.Minutes(),
-		Deficit:    currentPct * math.MAX_POWER,
+		Deficit:    (math.MAX_PCT - currentPct) * math.MAX_POWER,
 		ChargeRate: p,
 	})
 }
