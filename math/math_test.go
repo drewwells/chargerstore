@@ -82,6 +82,21 @@ func TestCharge_BatteryCharging(t *testing.T) {
 			eV120Max:      2400,
 			eV240:         1043,
 		},
+		{
+			battery: types.LastMsg{
+				Data:        0.7490196,
+				PublishTime: now,
+			},
+			amps: types.LastMsg{
+				Data: 8,
+			},
+			volts:         types.LastMsg{},
+			eEstimate:     false,
+			eCurrent:      -60,
+			eV120Standard: 3600,
+			eV120Max:      2400,
+			eV240:         1043,
+		},
 	}
 
 	for i, tm := range testMap {
