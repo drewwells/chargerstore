@@ -82,6 +82,7 @@ func Process(ctx context.Context, msg *pubsub.Message) (types.CarMsg, error) {
 	if msg == nil {
 		return cm, errors.New("empty message")
 	}
+	log.Infof(ctx, "data %s", string(msg.Data))
 	if err := json.Unmarshal(msg.Data, &cm); err != nil {
 		err := fmt.Errorf("could not decode message data: %#v", msg)
 		log.Errorf(ctx, err.Error())

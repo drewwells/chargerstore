@@ -111,7 +111,7 @@ func pushHandler(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		err := fmt.Errorf("Could not decode body: %v", err)
 		log.Errorf(ctx, "%s", err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		// http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	log.Infof(ctx, "request % #v\n", req)
@@ -119,7 +119,7 @@ func pushHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		err := fmt.Errorf("failed to process msg: %s", err)
 		log.Errorf(ctx, "%s", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		// http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	log.Infof(ctx, "processed message from: %s", msg.DeviceID)
