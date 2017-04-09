@@ -20,7 +20,7 @@ const (
 
 // Power provided in kwh
 func Power(amp float32, volt float32) float32 {
-	return amp * volt / 1000
+	return amp * volt / float32(1000)
 }
 
 // Remaining determines the amount of time remaining to charge to full

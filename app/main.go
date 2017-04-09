@@ -52,7 +52,7 @@ func lastStatusHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func batteryStatusHandler(w http.ResponseWriter, r *http.Request) {
-	p := math.Power(chargerstore.LastAmps.Data, chargerstore.LastAmps.Data)
+	p := math.Power(chargerstore.LastVolts.Data, chargerstore.LastAmps.Data)
 	currentPct := chargerstore.LastBattery.Data
 	timeToCharge := math.Remaining(
 		currentPct,
@@ -70,10 +70,16 @@ func batteryStatusHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func rateHandler(w http.ResponseWriter, r *http.Request) {
-	p := math.Power(chargerstore.LastAmps.Data, chargerstore.LastAmps.Data)
+	p := math.Power(chargerstore.LastVolts.Data, chargerstore.LastAmps.Data)
 	marshal(w, struct {
+		Amps  float32 `json:"amps"`
+		Volts float32 `json:"volts"`
 		Power float32 `json:"power"`
-	}{Power: p})
+	}{
+		Power: p,
+		Amps:  chargerstore.LastAmps.Data,
+		Volts: chargerstore.LastVolts.Data,
+	})
 }
 
 func summaryHandler(w http.ResponseWriter, r *http.Request) {
