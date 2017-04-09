@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"sync"
+
+	"google.golang.org/appengine/log"
 
 	"github.com/drewwells/chargerstore/types"
 
@@ -51,7 +52,7 @@ func (o *Options) Subscribe(subName string, topicName string) {
 	ctx := context.Background()
 	topic, err := o.getTopic(ctx, subName, topicName)
 	if err != nil {
-		log.Fatal(err)
+		// slog.Fatal(err)
 	}
 
 	o.topic = topic
@@ -83,7 +84,7 @@ func Process(ctx context.Context, msg *pubsub.Message) (types.CarMsg, error) {
 	}
 	if err := json.Unmarshal(msg.Data, &cm); err != nil {
 		err := fmt.Errorf("could not decode message data: %#v", msg)
-		log.Println(err)
+		log.Errorf(ctx, err.Error())
 		return cm, err
 	}
 	cm.PublishTime = msg.PublishTime
@@ -94,7 +95,7 @@ func Process(ctx context.Context, msg *pubsub.Message) (types.CarMsg, error) {
 	count++
 	muCount.Unlock()
 
-	log.Printf("received %#v\n", cm)
+	log.Infof(ctx, "received: %#v\n", cm)
 	//k := datastore.NewKey(ctx, carbucket, msg.ID, 0, nil)
 	k := datastore.NewIncompleteKey(ctx, carbucket, nil)
 	if _, err := datastore.Put(ctx, k, &cm); err != nil {
@@ -137,11 +138,11 @@ func (o *Options) subscribe(sub *pubsub.Subscription) {
 
 		_, err := Process(ctx, msg)
 		if err != nil {
-			log.Printf("failed to process msg: %s", err)
+			log.Errorf(ctx, "failed to process msg: %s", err)
 		}
 
 	})
 	if err != nil {
-		log.Printf("error receiving event: %s", err)
+		log.Errorf(ctx, "error receiving event: %s", err)
 	}
 }

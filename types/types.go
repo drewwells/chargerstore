@@ -27,6 +27,15 @@ type PushRequest struct {
 }
 
 // CarMsg is the format incoming from particle
+// {
+//   "VEHICLE_SPEED": -1,
+//   "AMBIENT_AIR_TEMPERATURE": 26,
+//   "CONTROL_MODULE_VOLTAGE": -1,
+//   "FUEL_TANK_LEVEL_INPUT": -1,
+//   "CHARGE_AMPS_IN": 0,
+//   "CHARGER_VOLTS_IN": 0,
+//   "EXTENDED_HYBRID_BATTERY_PACK_REMAINING_LIFE": 84.313728
+// }
 type CarMsg struct {
 	VehicleSpeed float32   `json:"VEHICLE_SPEED"`
 	AirTemp      float32   `json:"AMBIENT_AIR_TEMPERATURE"`
@@ -34,7 +43,7 @@ type CarMsg struct {
 	Fuel         float32   `json:"FUEL_TANK_LEVEL_INPUT"`
 	ChargerAmps  float32   `json:"CHARGER_AMPS_IN"`
 	ChargerVolts float32   `json:"CHARGER_VOLTS_IN"`
-	Battery      float32   `json:"EXTENDED_HYBRID_BATTERY_REMAINING_LIFE"`
+	Battery      float32   `json:"EXTENDED_HYBRID_BATTERY_PACK_REMAINING_LIFE"`
 	PublishTime  time.Time `json:"publish_time"`
 	Event        string    `json:"event"`
 	DeviceID     string    `json:"device_id"`

@@ -10,6 +10,7 @@ import (
 	"google.golang.org/appengine/log"
 
 	"github.com/drewwells/chargerstore"
+	"github.com/drewwells/chargerstore/math"
 	"github.com/drewwells/chargerstore/types"
 )
 
@@ -32,20 +33,47 @@ func init() {
 	http.HandleFunc("/car/id/battery", batteryStatusHandler)
 }
 
+func marshal(w http.ResponseWriter, v interface{}) error {
+	bs, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(bs)
+	return nil
+}
+
 func lastStatusHandler(w http.ResponseWriter, r *http.Request) {
 	resp := make(map[string]types.LastMsg)
 	resp["Amps"] = chargerstore.LastAmps
 	resp["Volts"] = chargerstore.LastVolts
 	resp["Battery"] = chargerstore.LastBattery
-	bs, _ := json.Marshal(resp)
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(bs)
+	marshal(w, resp)
 }
 
 func batteryStatusHandler(w http.ResponseWriter, r *http.Request) {
+	p := math.Power(chargerstore.LastAmps.Data, chargerstore.LastAmps.Data)
+	currentPct := chargerstore.LastBattery.Data
+	timeToCharge := math.Remaining(
+		currentPct,
+		p,
+	)
+	marshal(w, struct {
+		Minutes    float64 `json:"remaining_minutes"`
+		Deficit    float32 `json:"power_deficit"`
+		ChargeRate float32 `json:"charge_rate"`
+	}{
+		Minutes:    timeToCharge.Minutes(),
+		Deficit:    currentPct * math.MAX_POWER,
+		ChargeRate: p,
+	})
 }
 
 func rateHandler(w http.ResponseWriter, r *http.Request) {
+	p := math.Power(chargerstore.LastAmps.Data, chargerstore.LastAmps.Data)
+	marshal(w, struct {
+		Power float32 `json:"power"`
+	}{Power: p})
 }
 
 func summaryHandler(w http.ResponseWriter, r *http.Request) {
