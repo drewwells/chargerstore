@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
+	"time"
 
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/log"
@@ -59,12 +60,14 @@ func batteryStatusHandler(w http.ResponseWriter, r *http.Request) {
 		p,
 	)
 	marshal(w, struct {
-		Minutes    float64 `json:"remaining_minutes"`
-		Deficit    float32 `json:"power_deficit"`
-		ChargeRate float32 `json:"charge_rate"`
+		Duration   time.Duration `json:"duration"`
+		Minutes    float64       `json:"remaining_minutes"`
+		Deficit    float32       `json:"power_deficit"`
+		ChargeRate float32       `json:"charge_rate"`
 	}{
+		Duration:   timeToCharge,
 		Minutes:    timeToCharge.Minutes(),
-		Deficit:    (math.MAX_PCT - currentPct) * math.MAX_POWER,
+		Deficit:    (math.MAX_PCT - currentPct/100) * math.MAX_POWER,
 		ChargeRate: p,
 	})
 }
