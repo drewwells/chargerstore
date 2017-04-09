@@ -35,7 +35,7 @@ func init() {
 }
 
 func marshal(w http.ResponseWriter, v interface{}) error {
-	bs, err := json.Marshal(v)
+	bs, err := json.MarshalIndent(v, "", "  ")
 	if err != nil {
 		return err
 	}
