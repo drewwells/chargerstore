@@ -11,6 +11,7 @@ import (
 
 	"github.com/drewwells/chargerstore"
 	"github.com/drewwells/chargerstore/math"
+	"github.com/drewwells/chargerstore/store"
 	"github.com/drewwells/chargerstore/types"
 )
 
@@ -44,10 +45,21 @@ func marshal(w http.ResponseWriter, v interface{}) error {
 }
 
 func lastStatusHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := appengine.NewContext(r)
+	// TODO: read deviceid from url or account
+	devID := "520041000351353337353037"
+	stat, err := store.GetCarStatus(ctx, devID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	resp := make(map[string]types.LastMsg)
-	resp["amps"] = chargerstore.LastAmps
-	resp["volts"] = chargerstore.LastVolts
-	resp["soc"] = chargerstore.LastSOC
+	resp["staticamps"] = chargerstore.LastAmps
+	resp["staticvolts"] = chargerstore.LastVolts
+	resp["staticsoc"] = chargerstore.LastSOC
+	resp["amps"] = stat.LastAmps
+	resp["volts"] = stat.LastVolts
+	resp["soc"] = stat.LastSOC
 	marshal(w, resp)
 }
 

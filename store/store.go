@@ -1,8 +1,9 @@
 package store
 
 import (
-	"context"
 	"fmt"
+
+	"golang.org/x/net/context"
 
 	"github.com/drewwells/chargerstore/types"
 	"google.golang.org/appengine/datastore"
@@ -28,11 +29,11 @@ func PutCarStatus(ctx context.Context, status *types.CarStatus) error {
 	return err
 }
 
-func GetCarStatus(ctx context.Context, deviceID string) (*types.CarMsg, error) {
+func GetCarStatus(ctx context.Context, deviceID string) (*types.CarStatus, error) {
 	q := datastore.NewQuery(statusbucket).Filter("DeviceID =", deviceID).Order("-CreatedAt").Limit(1)
 
 	it := q.Run(ctx)
-	var cm types.CarMsg
+	var cm types.CarStatus
 	_, err := it.Next(&cm)
 	return &cm, err
 }
