@@ -65,6 +65,23 @@ func TestCharge_BatteryCharging(t *testing.T) {
 			eV120Max:      2000,
 			eV240:         869,
 		},
+		{
+			battery: types.LastMsg{
+				Data:        0.7490196,
+				PublishTime: now,
+			},
+			amps: types.LastMsg{
+				Data: 8,
+			},
+			volts: types.LastMsg{
+				Data: 120,
+			},
+			eEstimate:     false,
+			eCurrent:      3600,
+			eV120Standard: 3600,
+			eV120Max:      2400,
+			eV240:         1043,
+		},
 	}
 
 	for i, tm := range testMap {
@@ -73,20 +90,24 @@ func TestCharge_BatteryCharging(t *testing.T) {
 			t.Errorf("%d got: %t wanted: %t", i, bc.Estimate, e)
 		}
 
-		if e := int(tm.eCurrent); e != int(bc.Current.Duration.Seconds()) {
-			t.Errorf("%d got: %d wanted: %d", i, bc.Current.Duration, e)
+		sec := int(bc.Current.Duration.Seconds())
+		if e := int(tm.eCurrent); e != sec {
+			t.Errorf("%d got: %d wanted: %d", i, sec, e)
 		}
 
-		if e := int(tm.eV120Standard); e != int(bc.V120Standard.Duration.Seconds()) {
-			t.Errorf("%d got: %d wanted: %d", i, int(bc.V120Standard.Duration.Seconds()), e)
+		sec = int(bc.V120Standard.Duration.Seconds())
+		if e := int(tm.eV120Standard); e != sec {
+			t.Errorf("%d got: %d wanted: %d", i, sec, e)
 		}
 
-		if e := int(tm.eV120Max); e != int(bc.V120Max.Duration.Seconds()) {
-			t.Errorf("%d got: %d wanted: %d", i, bc.V120Max.Duration, e)
+		sec = int(bc.V120Max.Duration.Seconds())
+		if e := int(tm.eV120Max); e != sec {
+			t.Errorf("%d got: %d wanted: %d", i, sec, e)
 		}
 
-		if e := int(tm.eV240); e != int(bc.V240.Duration.Seconds()) {
-			t.Errorf("%d got: %d wanted: %d", i, bc.V240.Duration, e)
+		sec = int(bc.V240.Duration.Seconds())
+		if e := int(tm.eV240); e != sec {
+			t.Errorf("%d got: %d wanted: %d", i, sec, e)
 		}
 
 	}

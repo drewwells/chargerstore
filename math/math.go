@@ -66,7 +66,6 @@ func guessRecharged(lastBattery types.LastMsg, lastAmps types.LastMsg, lastVolts
 }
 
 func BatteryCharging(lastBattery types.LastMsg, lastAmps types.LastMsg, lastVolts types.LastMsg) types.BatteryCharging {
-	//func BatteryCharging(currentPct float32, currentPwr float32, lastPublished time.Time) types.BatteryCharging {
 
 	// charge exceeds maximum, all 0s for charging
 	if lastBattery.Data >= MAX_PCT {
@@ -82,6 +81,7 @@ func BatteryCharging(lastBattery types.LastMsg, lastAmps types.LastMsg, lastVolt
 	currentPct := lastBattery.Data
 	deficit := float64((MAX_PCT - currentPct) * MAX_ENERGY)
 	regained := guessRecharged(lastBattery, lastAmps, lastVolts)
+
 	// no recent SOC data, indicate so
 	estimate := time.Since(lastBattery.PublishTime) > 5*time.Minute
 
