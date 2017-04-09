@@ -54,7 +54,7 @@ func lastStatusHandler(w http.ResponseWriter, r *http.Request) {
 func batteryStatusHandler(w http.ResponseWriter, r *http.Request) {
 	p := math.Power(chargerstore.LastVolts.Data, chargerstore.LastAmps.Data)
 	currentPct := chargerstore.LastBattery.Data / 100
-	timeToCharge := math.TimeToCharge(
+	timeToCharge := math.TimeToChargePCT(
 		currentPct,
 		p,
 	)
