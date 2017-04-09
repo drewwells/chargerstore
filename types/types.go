@@ -37,17 +37,20 @@ type PushRequest struct {
 //   "EXTENDED_HYBRID_BATTERY_PACK_REMAINING_LIFE": 84.313728
 // }
 type CarMsg struct {
-	ID           string    `json:"id"`
-	VehicleSpeed float64   `json:"VEHICLE_SPEED"`
-	AirTemp      float64   `json:"AMBIENT_AIR_TEMPERATURE"`
-	CMV          float64   `json:"CONTROL_MODULE_VOLTAGE"`
-	Fuel         float64   `json:"FUEL_TANK_LEVEL_INPUT"`
-	ChargerAmps  float64   `json:"CHARGER_AMPS_IN"`
-	ChargerVolts float64   `json:"CHARGER_VOLTS_IN"`
-	Battery      float64   `json:"EXTENDED_HYBRID_BATTERY_PACK_REMAINING_LIFE"`
-	PublishTime  time.Time `json:"publish_time"`
-	Event        string    `json:"event"`
-	DeviceID     string    `json:"device_id"`
+	ID                string    `json:"id"`
+	VehicleSpeed      float64   `json:"vehicle_speed"`
+	AirTemp           float64   `json:"ambient_air_temperature"`
+	CMV               float64   `json:"control_module_voltage"`
+	Fuel              float64   `json:"fuel_tank_level_input"`
+	ChargerAmps       float64   `json:"charger_amps_in"`
+	ChargerVolts      float64   `json:"charger_volts_in"`
+	Battery           float64   `json:"extended_hybrid_battery_pack_remaining_life"`
+	HVDischargeAmps   float64   `json:"hv_discharge_amps"`
+	HVVolts           float64   `json:"hv_volts"`
+	EVMilesThisCharge float64   `json:"ev_miles_this_cycle"`
+	PublishTime       time.Time `json:"publish_time"`
+	Event             string    `json:"event"`
+	DeviceID          string    `json:"device_id"`
 }
 
 type CarStatus struct {
