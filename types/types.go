@@ -50,6 +50,21 @@ type CarMsg struct {
 }
 
 type LastMsg struct {
-	Data        float32
+	Data        float64
 	PublishTime time.Time
+}
+
+type Charger struct {
+	Duration time.Duration
+	Minutes  float64
+}
+
+type BatteryCharging struct {
+	Deficit       float64   `json:"deficit"`      // energy below maximum
+	Estimate      bool      `json:"estimate"`     // indicate that we don't have SOC confirmation
+	LastPublished time.Time `json:"published_at"` // last time SOC was reported
+	Current       Charger   `json:"current"`      // current charging rate
+	V120Standard  Charger   `json:"v120_standard"`
+	V120Max       Charger   `json:"v120_max"`
+	V240          Charger   `json:"v240"`
 }

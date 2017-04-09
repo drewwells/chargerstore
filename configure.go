@@ -112,7 +112,7 @@ func processLastMsg(cm types.CarMsg) {
 	// battery tends to report 0, probably an error on C side
 	if cm.Battery > 0 {
 		LastBattery = types.LastMsg{
-			Data:        cm.Battery,
+			Data:        cm.Battery / 100, // battery is sent as pct * 100
 			PublishTime: cm.PublishTime,
 		}
 	}

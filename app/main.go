@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
-	"time"
 
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/log"
@@ -54,22 +53,23 @@ func lastStatusHandler(w http.ResponseWriter, r *http.Request) {
 
 func batteryStatusHandler(w http.ResponseWriter, r *http.Request) {
 	p := math.Power(chargerstore.LastVolts.Data, chargerstore.LastAmps.Data)
-	currentPct := chargerstore.LastBattery.Data
-	timeToCharge := math.Remaining(
+	currentPct := chargerstore.LastBattery.Data / 100
+	timeToCharge := math.TimeToCharge(
 		currentPct,
 		p,
 	)
-	marshal(w, struct {
-		Duration   time.Duration `json:"duration"`
-		Minutes    float64       `json:"remaining_minutes"`
-		Deficit    float32       `json:"power_deficit"`
-		ChargeRate float32       `json:"charge_rate"`
-	}{
-		Duration:   timeToCharge,
-		Minutes:    timeToCharge.Minutes(),
-		Deficit:    (math.MAX_PCT - currentPct/100) * math.MAX_POWER,
-		ChargeRate: p,
-	})
+	marshal(w, math.BatteryCharging(currentPct, p, chargerstore.LastBattery.PublishTime))
+	// marshal(w, struct {
+	// 	Duration   time.Duration `json:"duration"`
+	// 	Minutes    float64       `json:"remaining_minutes"`
+	// 	Deficit    float32       `json:"power_deficit"`
+	// 	ChargeRate float32       `json:"charge_rate"`
+	// }{
+	// 	Duration:   timeToCharge,
+	// 	Minutes:    timeToCharge.Minutes(),
+	// 	Deficit:    (math.MAX_PCT - currentPct/100) * math.MAX_POWER,
+	// 	ChargeRate: p,
+	// })
 }
 
 func rateHandler(w http.ResponseWriter, r *http.Request) {
