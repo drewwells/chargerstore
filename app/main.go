@@ -45,9 +45,9 @@ func marshal(w http.ResponseWriter, v interface{}) error {
 
 func lastStatusHandler(w http.ResponseWriter, r *http.Request) {
 	resp := make(map[string]types.LastMsg)
-	resp["Amps"] = chargerstore.LastAmps
-	resp["Volts"] = chargerstore.LastVolts
-	resp["Battery"] = chargerstore.LastBattery
+	resp["amps"] = chargerstore.LastAmps
+	resp["volts"] = chargerstore.LastVolts
+	resp["battery"] = chargerstore.LastBattery
 	marshal(w, resp)
 }
 
@@ -59,17 +59,6 @@ func batteryStatusHandler(w http.ResponseWriter, r *http.Request) {
 		p,
 	)
 	marshal(w, math.BatteryCharging(currentPct, p, chargerstore.LastBattery.PublishTime))
-	// marshal(w, struct {
-	// 	Duration   time.Duration `json:"duration"`
-	// 	Minutes    float64       `json:"remaining_minutes"`
-	// 	Deficit    float32       `json:"power_deficit"`
-	// 	ChargeRate float32       `json:"charge_rate"`
-	// }{
-	// 	Duration:   timeToCharge,
-	// 	Minutes:    timeToCharge.Minutes(),
-	// 	Deficit:    (math.MAX_PCT - currentPct/100) * math.MAX_POWER,
-	// 	ChargeRate: p,
-	// })
 }
 
 func rateHandler(w http.ResponseWriter, r *http.Request) {
