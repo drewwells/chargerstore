@@ -5,12 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"time"
 
 	"google.golang.org/appengine/log"
 
+	"github.com/drewwells/chargerstore/store"
 	"github.com/drewwells/chargerstore/types"
-
-	"google.golang.org/appengine/datastore"
 
 	"cloud.google.com/go/pubsub"
 	"golang.org/x/net/context"
@@ -87,6 +87,7 @@ func Process(ctx context.Context, msg *pubsub.Message) (types.CarMsg, error) {
 		log.Errorf(ctx, err.Error())
 		return cm, err
 	}
+	cm.ID = msg.ID
 	cm.PublishTime = msg.PublishTime
 	cm.Event = msg.Attributes["event"]
 	cm.DeviceID = msg.Attributes["device_id"]
@@ -96,22 +97,25 @@ func Process(ctx context.Context, msg *pubsub.Message) (types.CarMsg, error) {
 	muCount.Unlock()
 
 	log.Infof(ctx, "received: %#v\n", cm)
-	//k := datastore.NewKey(ctx, carbucket, msg.ID, 0, nil)
-	k := datastore.NewIncompleteKey(ctx, carbucket, nil)
-	if _, err := datastore.Put(ctx, k, &cm); err != nil {
-		// Handle err
-		return cm, fmt.Errorf("failed to save %s: %s", msg.ID, err)
-	}
+	store.PutCarMsg(ctx, &cm)
 
 	processLastMsg(cm)
 
-	return cm, nil
+	err := store.PutCarStatus(ctx, &types.CarStatus{
+		DeviceID:  msg.Attributes["device_id"],
+		LastSOC:   LastSOC,
+		LastAmps:  LastAmps,
+		LastVolts: LastVolts,
+		CreatedAt: time.Now(),
+	})
+
+	return cm, err
 }
 
 func processLastMsg(cm types.CarMsg) {
 	// battery tends to report 0, probably an error on C side
 	if cm.Battery > 0 {
-		LastBattery = types.LastMsg{
+		LastSOC = types.LastMsg{
 			Data:        cm.Battery / 100, // battery is sent as pct * 100
 			PublishTime: cm.PublishTime,
 		}

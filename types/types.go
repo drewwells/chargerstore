@@ -37,16 +37,25 @@ type PushRequest struct {
 //   "EXTENDED_HYBRID_BATTERY_PACK_REMAINING_LIFE": 84.313728
 // }
 type CarMsg struct {
-	VehicleSpeed float32   `json:"VEHICLE_SPEED"`
-	AirTemp      float32   `json:"AMBIENT_AIR_TEMPERATURE"`
-	CMV          float32   `json:"CONTROL_MODULE_VOLTAGE"`
-	Fuel         float32   `json:"FUEL_TANK_LEVEL_INPUT"`
-	ChargerAmps  float32   `json:"CHARGER_AMPS_IN"`
-	ChargerVolts float32   `json:"CHARGER_VOLTS_IN"`
-	Battery      float32   `json:"EXTENDED_HYBRID_BATTERY_PACK_REMAINING_LIFE"`
+	ID           string    `json:"id"`
+	VehicleSpeed float64   `json:"VEHICLE_SPEED"`
+	AirTemp      float64   `json:"AMBIENT_AIR_TEMPERATURE"`
+	CMV          float64   `json:"CONTROL_MODULE_VOLTAGE"`
+	Fuel         float64   `json:"FUEL_TANK_LEVEL_INPUT"`
+	ChargerAmps  float64   `json:"CHARGER_AMPS_IN"`
+	ChargerVolts float64   `json:"CHARGER_VOLTS_IN"`
+	Battery      float64   `json:"EXTENDED_HYBRID_BATTERY_PACK_REMAINING_LIFE"`
 	PublishTime  time.Time `json:"publish_time"`
 	Event        string    `json:"event"`
 	DeviceID     string    `json:"device_id"`
+}
+
+type CarStatus struct {
+	DeviceID  string    `json:"device_id"`
+	LastSOC   LastMsg   `json:"soc"`
+	LastAmps  LastMsg   `json:"amps"`
+	LastVolts LastMsg   `json:"volts"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type LastMsg struct {
