@@ -72,7 +72,15 @@ func batteryStatusHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func rateHandler(w http.ResponseWriter, r *http.Request) {
-	p := math.Power(chargerstore.LastVolts.Data, chargerstore.LastAmps.Data)
+	ctx := appengine.NewContext(r)
+	// TODO: read deviceid from url or account
+	devID := "520041000351353337353037"
+	stat, err := store.GetCarStatus(ctx, devID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	p := math.Power(stat.LastVolts.Data, stat.LastAmps.Data)
 	marshal(w, struct {
 		Amps  float64 `json:"amps"`
 		Volts float64 `json:"volts"`

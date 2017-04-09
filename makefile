@@ -5,7 +5,7 @@ serve:
 	dev_appserver.py app/app.yaml
 
 deploy:
-	cd app; gcloud app deploy
+	cd app; gcloud app deploy index.yaml
 
 cloudpkgandupload:
 	#cd app; GOOS=linux GOARCH=amd64 go build -i -v -o ../dist/app
