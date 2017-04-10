@@ -2,14 +2,14 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
+	slog "log"
 	"net/http"
 	"sync"
 
 	"google.golang.org/appengine"
-	"google.golang.org/appengine/log"
 
 	"github.com/drewwells/chargerstore"
+	"github.com/drewwells/chargerstore/api"
 	"github.com/drewwells/chargerstore/math"
 	"github.com/drewwells/chargerstore/store"
 	"github.com/drewwells/chargerstore/types"
@@ -20,18 +20,28 @@ func main() {
 }
 
 func init() {
-
 	// opts, err := chargerstore.NewPS()
 	// if err != nil {
 	// 	log.Fatal(err)
 	// }
 
 	//opts.Subscribe("CAR", "carpull")
-	http.HandleFunc("/pubsub/push", pushHandler)
-	http.HandleFunc("/summary", summaryHandler)
-	http.HandleFunc("/car/id/laststatus", lastStatusHandler)
-	http.HandleFunc("/car/id/chargerate", rateHandler)
-	http.HandleFunc("/car/id/battery", batteryStatusHandler)
+	http.HandleFunc("/api/car/id/laststatus", lastStatusHandler)
+	http.HandleFunc("/api/car/id/chargerate", rateHandler)
+	http.HandleFunc("/api/car/id/battery", batteryStatusHandler)
+
+	// http.HandleFunc("/test", func(w http.ResponseWriter, r *http.Request) {
+	// 	ctx := appengine.NewContext(r)
+	// 	w.Write([]byte("to test\n"))
+	// 	test(ctx)
+	// 	w.Write([]byte("wrote it"))
+	// })
+
+	router, err := api.New()
+	if err != nil {
+		slog.Fatal(err)
+	}
+	http.Handle("/", router)
 }
 
 func marshal(w http.ResponseWriter, v interface{}) error {
@@ -92,10 +102,6 @@ func rateHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func summaryHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "This worker has processed %d events.", chargerstore.Count())
-}
-
 const maxMessages = 10
 
 var (
@@ -103,24 +109,3 @@ var (
 	messagesMu sync.Mutex
 	messages   []string
 )
-
-func pushHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := appengine.NewContext(r)
-	var req types.PushRequest
-	defer r.Body.Close()
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		err := fmt.Errorf("Could not decode body: %v", err)
-		log.Errorf(ctx, "%s", err)
-		// http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	log.Infof(ctx, "request % #v\n", req)
-	msg, err := chargerstore.Process(ctx, req.Message)
-	if err != nil {
-		err := fmt.Errorf("failed to process msg: %s", err)
-		log.Errorf(ctx, "%s", err)
-		// http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	log.Infof(ctx, "processed message from: %s", msg.DeviceID)
-}
