@@ -6,10 +6,10 @@ import (
 	"net/http"
 
 	"google.golang.org/appengine"
+	"google.golang.org/appengine/log"
 
 	"github.com/drewwells/chargerstore"
 	"github.com/drewwells/chargerstore/types"
-	"github.com/gobuild/log"
 	"github.com/gorilla/mux"
 )
 
@@ -25,7 +25,7 @@ func New() (http.Handler, error) {
 	}
 
 	r.HandleFunc("/api/v1/summary", o.summaryHandler)
-	r.HandleFunc("/pubsub/push", pushHandler)
+	r.HandleFunc("/pubsub/push", o.pushHandler)
 	return o, nil
 
 }

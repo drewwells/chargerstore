@@ -26,9 +26,9 @@ func init() {
 	// }
 
 	//opts.Subscribe("CAR", "carpull")
-	http.HandleFunc("/api/car/id/laststatus", lastStatusHandler)
-	http.HandleFunc("/api/car/id/chargerate", rateHandler)
-	http.HandleFunc("/api/car/id/battery", batteryStatusHandler)
+	http.HandleFunc("/api/v1/car/id/laststatus", lastStatusHandler)
+	http.HandleFunc("/api/v1/car/id/chargerate", rateHandler)
+	http.HandleFunc("/api/v1/car/id/battery", batteryStatusHandler)
 
 	// http.HandleFunc("/test", func(w http.ResponseWriter, r *http.Request) {
 	// 	ctx := appengine.NewContext(r)
