@@ -6,6 +6,8 @@ import (
 	"html/template"
 	"net/http"
 
+	"golang.org/x/net/context"
+
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/log"
 
@@ -53,11 +55,9 @@ p {
 }
 </style>
 <script>
-function writeDate(d) {
-  var h = d.getHours(); var m = d.getMinutes(); var s = d.getSeconds();
-console.log(h);
-  var str = '' + h + ':' + m + ':' + s;
-  document.write(str);
+function writeDate(str) {
+  var d = new Date(JSON.parse(str));
+  document.write(d.toLocaleString());
 }
 function round(float) {
   var rounded = Math.round(float*100)/100;
@@ -67,7 +67,7 @@ function round(float) {
 <body>
 <p>
 Battery %: {{.battery.State.Percent}}<br/>
-Last Updated: <script>writeDate(new Date({{.battery.State.LastSOCTime.Unix}}));</script>
+Last Updated: <script>writeDate({{marshal .battery.State.LastSOCTime}});</script>
 </p>
 <p>
 Current Charging done in: <script>round({{.battery.Current.Minutes}});</script> mins
@@ -75,34 +75,37 @@ Current Charging done in: <script>round({{.battery.Current.Minutes}});</script> 
 <p>
 Battery %: {{.battery.State.Percent}}
 </p>
-
+  <pre> {{ marshal .status }} </pre>
   <p>
     Device ID: {{.status.DeviceID}}
   </p>
   <p>
     SOC: {{.status.LastSOC.Data}}<br/>
-    Last Updated: <script>writeDate(new Date({{.status.LastSOC.PublishTime.Unix}}));</script>
+    Last Updated: <script>writeDate({{marshal .status.LastSOC.PublishTime}});</script>
   </p>
   <p>
     Volts: {{.status.LastVolts.Data}}<br/>
-    Last Updated: <script>writeDate(new Date({{.status.LastVolts.PublishTime.Unix}}));</script>
+    Last Updated: <script>writeDate(new {{marshal .status.LastVolts.PublishTime}});</script>
   </p>
   <p>
     Amps: {{.status.LastAmps.Data}}<br/>
-    Last Updated: <script>writeDate(new Date({{.status.LastAmps.PublishTime.Unix}}));</script>
+    Last Updated: <script>writeDate({{marshal .status.LastAmps.PublishTime}});</script>
   </p>
 </body>
 </html>
 `
 	)
 
-	ctx := appengine.NewContext(r)
+	//ctx := appengine.NewContext(r)
+	ctx := context.Background()
 	// TODO: read deviceid from url or account
 	stat, err := store.GetCarStatus(ctx, devID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
+	//log.Infof(ctx, "%#v\n", stat)
 
 	m := map[string]interface{}{
 		"status": stat,
@@ -114,16 +117,20 @@ Battery %: {{.battery.State.Percent}}
 
 	funcMap := template.FuncMap{
 		// The name "title" is what the function will be called in the template text.
-		"time": json.Marshal,
+		"marshal": func(v interface{}) string {
+			a, _ := json.Marshal(v)
+			return string(template.JS(a))
+		},
 	}
-	_ = funcMap
-
-	overlayTmpl, err := template.New("overlay").Parse(overlay)
-	if err != nil {
-		log.Errorf(ctx, err.Error())
-	}
+	overlayTmpl, err := template.New("overlay").
+		Funcs(funcMap).Parse(overlay)
+	// if err != nil {
+	// 	log.Errorf(ctx, err.Error())
+	// }
+	fmt.Println(err)
 	if err := overlayTmpl.Execute(w, m); err != nil {
-		log.Errorf(ctx, err.Error())
+		// log.Errorf(ctx, err.Error())
+		fmt.Println(err)
 	}
 }
 
