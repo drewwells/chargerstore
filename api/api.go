@@ -6,8 +6,6 @@ import (
 	"html/template"
 	"net/http"
 
-	"golang.org/x/net/context"
-
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/log"
 
@@ -96,8 +94,7 @@ Battery %: {{.battery.State.Percent}}
 `
 	)
 
-	//ctx := appengine.NewContext(r)
-	ctx := context.Background()
+	ctx := appengine.NewContext(r)
 	// TODO: read deviceid from url or account
 	stat, err := store.GetCarStatus(ctx, devID)
 	if err != nil {
@@ -105,7 +102,7 @@ Battery %: {{.battery.State.Percent}}
 		return
 	}
 
-	//log.Infof(ctx, "%#v\n", stat)
+	log.Infof(ctx, "%#v\n", stat)
 
 	m := map[string]interface{}{
 		"status": stat,
@@ -124,13 +121,11 @@ Battery %: {{.battery.State.Percent}}
 	}
 	overlayTmpl, err := template.New("overlay").
 		Funcs(funcMap).Parse(overlay)
-	// if err != nil {
-	// 	log.Errorf(ctx, err.Error())
-	// }
-	fmt.Println(err)
+	if err != nil {
+		log.Errorf(ctx, err.Error())
+	}
 	if err := overlayTmpl.Execute(w, m); err != nil {
-		// log.Errorf(ctx, err.Error())
-		fmt.Println(err)
+		log.Errorf(ctx, err.Error())
 	}
 }
 
