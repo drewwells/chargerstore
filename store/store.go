@@ -68,7 +68,7 @@ endloop:
 	return &cm, nil
 }
 
-func GetCarStatus(ctx context.Context, deviceID string) (*types.CarStatus, error) {
+var GetCarStatus = func(ctx context.Context, deviceID string) (*types.CarStatus, error) {
 
 	qry := aedatastore.NewQuery(statusbucket).Filter("DeviceID =", deviceID)
 	bat, err := getLastField(ctx, qry, "Battery")
