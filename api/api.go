@@ -42,7 +42,11 @@ func (o *options) status(w http.ResponseWriter, r *http.Request) {
 	const (
 		overlay = `
 <html>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
+* {
+font-size: 24px;
+}
 p {
   padding: 5px;
   border: solid 1px green;
@@ -119,8 +123,9 @@ func (o *options) index(w http.ResponseWriter, r *http.Request) {
 	const (
 		overlay = `
 <html>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <body>
-<ul>{{range .}}<li><a href="/api/v1/{{.}}">{{.}}</li>{{end}}</ul>
+<ul>{{range .}}<li><a href="{{.}}">{{.}}</li>{{end}}</ul>
 </body>
 </html>
 `
@@ -128,10 +133,11 @@ func (o *options) index(w http.ResponseWriter, r *http.Request) {
 	var (
 		// funcs     = template.FuncMap{"join": strings.Join}
 		guardians = []string{
-			"summary",
-			"car/id/laststatus",
-			"car/id/chargerate",
-			"car/id/battery",
+			"/id/status",
+			"/api/v1/summary",
+			"/api/v1/car/id/laststatus",
+			"/api/v1/car/id/chargerate",
+			"/api/v1/car/id/battery",
 		}
 	)
 	ctx := appengine.NewContext(r)
