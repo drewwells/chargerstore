@@ -54,10 +54,12 @@ func marshal(w http.ResponseWriter, v interface{}) error {
 	return nil
 }
 
+const devID = "520041000351353337353037"
+
 func lastStatusHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := appengine.NewContext(r)
 	// TODO: read deviceid from url or account
-	devID := "520041000351353337353037"
+
 	stat, err := store.GetCarStatus(ctx, devID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -74,10 +76,16 @@ func lastStatusHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func batteryStatusHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := appengine.NewContext(r)
+	stat, err := store.GetCarStatus(ctx, devID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	marshal(w, math.BatteryCharging(
-		chargerstore.LastSOC,
-		chargerstore.LastAmps,
-		chargerstore.LastVolts,
+		stat.LastSOC,
+		stat.LastAmps,
+		stat.LastVolts,
 	))
 }
 

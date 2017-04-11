@@ -67,9 +67,11 @@ func guessRecharged(lastBattery types.LastMsg, lastAmps types.LastMsg, lastVolts
 
 func BatteryCharging(lastBattery types.LastMsg, lastAmps types.LastMsg, lastVolts types.LastMsg) types.BatteryCharging {
 
+	// TODO: report errors for the various errorneous conditions
+
 	// charge exceeds maximum, all 0s for charging
 	if lastBattery.Data >= MAX_PCT {
-		return types.BatteryCharging{Deficit: 0}
+		return types.BatteryCharging{}
 	}
 
 	// SOC publishing usually stops shortly after car turns off
@@ -79,6 +81,10 @@ func BatteryCharging(lastBattery types.LastMsg, lastAmps types.LastMsg, lastVolt
 	// 1. If car reported non zero volt & amps recently <5mins, then it has
 	//    been charging since Car was turned off
 	currentPct := lastBattery.Data
+	if currentPct == 0 {
+		return types.BatteryCharging{}
+	}
+
 	deficit := float64((MAX_PCT - currentPct) * MAX_ENERGY)
 	regained := guessRecharged(lastBattery, lastAmps, lastVolts)
 
