@@ -10,6 +10,8 @@ import (
 	"google.golang.org/appengine/log"
 
 	"github.com/drewwells/chargerstore"
+	"github.com/drewwells/chargerstore/math"
+	"github.com/drewwells/chargerstore/store"
 	"github.com/drewwells/chargerstore/types"
 	"github.com/gorilla/mux"
 )
@@ -26,6 +28,7 @@ func New() (http.Handler, error) {
 	}
 
 	r.HandleFunc("/", o.index)
+	r.HandleFunc("/{id}/status", o.status)
 
 	r.HandleFunc("/api/v1/summary", o.summaryHandler)
 	r.HandleFunc("/pubsub/push", o.pushHandler)
@@ -33,9 +36,87 @@ func New() (http.Handler, error) {
 
 }
 
+const devID = "520041000351353337353037"
+
+func (o *options) status(w http.ResponseWriter, r *http.Request) {
+	const (
+		overlay = `
+<html>
+<style>
+p {
+  padding: 5px;
+  border: solid 1px green;
+}
+</style>
+<script>
+function writeDate(d) {
+  var str = d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds();
+  document.write(str);
+}
+function round(float) {
+  var rounded = Math.round(float*100)/100;
+  document.write(rounded);
+}
+</script>
+<body>
+<p>
+Battery %: {{.battery.State.Percent}}<br/>
+Last Updated: <script>writeDate(new Date('{{.battery.State.LastSOCTime}}'));</script>
+</p>
+<p>
+Current Charging done in: <script>round({{.battery.Current.Minutes}});</script> mins
+</p>
+<p>
+Battery %: {{.battery.State.Percent}}
+</p>
+
+  <p>
+    Device ID: {{.status.DeviceID}}
+  </p>
+  <p>
+    SOC: {{.status.LastSOC.Data}}<br/>
+    Last Updated: <script>writeDate(new Date('{{.status.LastSOC.PublishTime}}'));</script>
+  </p>
+  <p>
+    Volts: {{.status.LastVolts.Data}}<br/>
+    Last Updated: <script>writeDate(new Date('{{.status.LastVolts.PublishTime}}'));</script>
+  </p>
+  <p>
+    Amps: {{.status.LastAmps.Data}}<br/>
+    Last Updated: <script>writeDate(new Date('{{.status.LastAmps.PublishTime}}'));</script>
+  </p>
+</body>
+</html>
+`
+	)
+
+	ctx := appengine.NewContext(r)
+	// TODO: read deviceid from url or account
+	stat, err := store.GetCarStatus(ctx, devID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	m := map[string]interface{}{
+		"status": stat,
+		"battery": math.BatteryCharging(
+			stat.LastSOC,
+			stat.LastAmps,
+			stat.LastVolts,
+		)}
+
+	overlayTmpl, err := template.New("overlay").Parse(overlay)
+	if err != nil {
+		log.Errorf(ctx, err.Error())
+	}
+	if err := overlayTmpl.Execute(w, m); err != nil {
+		log.Errorf(ctx, err.Error())
+	}
+}
+
 func (o *options) index(w http.ResponseWriter, r *http.Request) {
 	const (
-		//master  = `Names:{{block "list" .}}{{"\n"}}{{range .}}{{println "-" .}}{{end}}{{end}}`
 		overlay = `
 <html>
 <body>
@@ -54,17 +135,10 @@ func (o *options) index(w http.ResponseWriter, r *http.Request) {
 		}
 	)
 	ctx := appengine.NewContext(r)
-	// masterTmpl, err := template.New("master").Funcs(funcs).Parse(master)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
 	overlayTmpl, err := template.New("overlay").Parse(overlay)
 	if err != nil {
 		log.Errorf(ctx, err.Error())
 	}
-	// if err := masterTmpl.Execute(os.Stdout, guardians); err != nil {
-	// 	log.Fatal(err)
-	// }
 	if err := overlayTmpl.Execute(w, guardians); err != nil {
 		log.Errorf(ctx, err.Error())
 	}
