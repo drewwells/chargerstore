@@ -30,11 +30,39 @@ func PutCarStatus(ctx context.Context, status *types.CarStatus) error {
 	return err
 }
 
-func GetCarStatus(ctx context.Context, deviceID string) (*types.CarStatus, error) {
-	q := aedatastore.NewQuery(statusbucket).Filter("DeviceID =", deviceID).Order("-CreatedAt").Limit(1)
+func getLastField(ctx context.Context, qry *aedatastore.Query, field string) (*types.CarStatus, error) {
+	q := qry.Order("-CreatedAt").
+		Filter(field+" >", 0).
+		Order("-CreatedAt").
+		Limit(1)
 
 	it := q.Run(ctx)
 	var cm types.CarStatus
 	_, err := it.Next(&cm)
 	return &cm, err
+}
+
+func GetCarStatus(ctx context.Context, deviceID string) (*types.CarStatus, error) {
+
+	qry := aedatastore.NewQuery(statusbucket).Filter("DeviceID =", deviceID)
+	bat, err := getLastField(ctx, qry, "Battery")
+	if err != nil {
+		return nil, err
+	}
+	volts, err := getLastField(ctx, qry, "ChargerVolts")
+	if err != nil {
+		return nil, err
+	}
+	amps, err := getLastField(ctx, qry, "ChargerAmps")
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.CarStatus{
+		DeviceID:  deviceID,
+		LastSOC:   bat.LastSOC,
+		LastAmps:  amps.LastAmps,
+		LastVolts: volts.LastVolts,
+		CreatedAt: bat.CreatedAt,
+	}, nil
 }
