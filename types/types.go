@@ -72,9 +72,10 @@ type Charger struct {
 }
 
 type ChargeState struct {
-	Percent  float64 `json:"percent"`
-	Deficit  float64 `json:"deficit_kwh"`
-	Regained float64 `json:"regained_kwh"`
+	LastSOCTime time.Time `json:"last_reported_soc"`
+	Percent     float64   `json:"percent"`
+	Deficit     float64   `json:"deficit_kwh"`
+	Regained    float64   `json:"regained_kwh"`
 }
 
 type BatteryCharging struct {
