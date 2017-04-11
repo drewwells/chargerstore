@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"net/http"
 
 	"google.golang.org/appengine"
@@ -24,10 +25,49 @@ func New() (http.Handler, error) {
 		Router: r,
 	}
 
+	r.HandleFunc("/", o.index)
+
 	r.HandleFunc("/api/v1/summary", o.summaryHandler)
 	r.HandleFunc("/pubsub/push", o.pushHandler)
 	return o, nil
 
+}
+
+func (o *options) index(w http.ResponseWriter, r *http.Request) {
+	const (
+		//master  = `Names:{{block "list" .}}{{"\n"}}{{range .}}{{println "-" .}}{{end}}{{end}}`
+		overlay = `
+<html>
+<body>
+<ul>{{range .}}<li><a href="/api/v1/{{.}}">{{.}}</li>{{end}}</ul>
+</body>
+</html>
+`
+	)
+	var (
+		// funcs     = template.FuncMap{"join": strings.Join}
+		guardians = []string{
+			"summary",
+			"car/id/laststatus",
+			"car/id/chargerate",
+			"car/id/battery",
+		}
+	)
+	ctx := appengine.NewContext(r)
+	// masterTmpl, err := template.New("master").Funcs(funcs).Parse(master)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	overlayTmpl, err := template.New("overlay").Parse(overlay)
+	if err != nil {
+		log.Errorf(ctx, err.Error())
+	}
+	// if err := masterTmpl.Execute(os.Stdout, guardians); err != nil {
+	// 	log.Fatal(err)
+	// }
+	if err := overlayTmpl.Execute(w, guardians); err != nil {
+		log.Errorf(ctx, err.Error())
+	}
 }
 
 func (o *options) summaryHandler(w http.ResponseWriter, r *http.Request) {
