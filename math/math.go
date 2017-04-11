@@ -93,7 +93,11 @@ func BatteryCharging(lastBattery types.LastMsg, lastAmps types.LastMsg, lastVolt
 
 	estCurrent := MAX_ENERGY - deficit + regained
 	bc := types.BatteryCharging{
-		Deficit:  deficit,
+		State: types.ChargeState{
+			Percent:  lastBattery.Data,
+			Deficit:  deficit,
+			Regained: regained,
+		},
 		Estimate: estimate,
 	}
 
