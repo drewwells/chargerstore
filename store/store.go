@@ -52,15 +52,16 @@ endloop:
 
 		switch field {
 		case "Battery":
+			// 0 is not a valid battery value, can bus loves to send it anyways
 			if cm.LastSOC.Data > 0 {
 				break endloop
 			}
 		case "ChargerVolts":
-			if cm.LastVolts.Data > 0 {
+			if cm.LastVolts.Data > -1 {
 				break endloop
 			}
 		case "ChargerAmps":
-			if cm.LastAmps.Data > 0 {
+			if cm.LastAmps.Data > -1 {
 				break endloop
 			}
 		}
