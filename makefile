@@ -1,6 +1,9 @@
 cloudserve:
 	cd app;	GCLOUD_PROJECT=particle-volt; PUBSUB_TOPIC=CAR; go run *.go
 
+local:
+	cd app; go build -i -v; ./app
+
 serve:
 	dev_appserver.py app/app.yaml
 

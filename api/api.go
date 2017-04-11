@@ -54,7 +54,9 @@ p {
 </style>
 <script>
 function writeDate(d) {
-  var str = d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds();
+  var h = d.getHours(); var m = d.getMinutes(); var s = d.getSeconds();
+console.log(h);
+  var str = '' + h + ':' + m + ':' + s;
   document.write(str);
 }
 function round(float) {
@@ -65,7 +67,7 @@ function round(float) {
 <body>
 <p>
 Battery %: {{.battery.State.Percent}}<br/>
-Last Updated: <script>writeDate(new Date('{{.battery.State.LastSOCTime}}'));</script>
+Last Updated: <script>writeDate(new Date({{.battery.State.LastSOCTime.Unix}}));</script>
 </p>
 <p>
 Current Charging done in: <script>round({{.battery.Current.Minutes}});</script> mins
@@ -79,15 +81,15 @@ Battery %: {{.battery.State.Percent}}
   </p>
   <p>
     SOC: {{.status.LastSOC.Data}}<br/>
-    Last Updated: <script>writeDate(new Date('{{.status.LastSOC.PublishTime}}'));</script>
+    Last Updated: <script>writeDate(new Date({{.status.LastSOC.PublishTime.Unix}}));</script>
   </p>
   <p>
     Volts: {{.status.LastVolts.Data}}<br/>
-    Last Updated: <script>writeDate(new Date('{{.status.LastVolts.PublishTime}}'));</script>
+    Last Updated: <script>writeDate(new Date({{.status.LastVolts.PublishTime.Unix}}));</script>
   </p>
   <p>
     Amps: {{.status.LastAmps.Data}}<br/>
-    Last Updated: <script>writeDate(new Date('{{.status.LastAmps.PublishTime}}'));</script>
+    Last Updated: <script>writeDate(new Date({{.status.LastAmps.PublishTime.Unix}}));</script>
   </p>
 </body>
 </html>
@@ -109,6 +111,12 @@ Battery %: {{.battery.State.Percent}}
 			stat.LastAmps,
 			stat.LastVolts,
 		)}
+
+	funcMap := template.FuncMap{
+		// The name "title" is what the function will be called in the template text.
+		"time": json.Marshal,
+	}
+	_ = funcMap
 
 	overlayTmpl, err := template.New("overlay").Parse(overlay)
 	if err != nil {
