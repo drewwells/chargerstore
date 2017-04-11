@@ -7,6 +7,7 @@ import (
 
 	"github.com/drewwells/chargerstore/types"
 	aedatastore "google.golang.org/appengine/datastore"
+	"google.golang.org/appengine/log"
 )
 
 const (
@@ -32,14 +33,39 @@ func PutCarStatus(ctx context.Context, status *types.CarStatus) error {
 
 func getLastField(ctx context.Context, qry *aedatastore.Query, field string) (*types.CarStatus, error) {
 	q := qry.Order("-CreatedAt").
-		Filter(field+" >", 0).
-		Order("-CreatedAt").
-		Limit(1)
+		//Filter(field+" >", 0).
+		Order("-CreatedAt") //.
+		//Limit(1)
 
-	it := q.Run(ctx)
 	var cm types.CarStatus
-	_, err := it.Next(&cm)
-	return &cm, err
+	it := q.Run(ctx)
+endloop:
+	for {
+		_, err := it.Next(&cm)
+		if err == aedatastore.Done {
+			break
+		}
+		if err != nil {
+			log.Errorf(ctx, "fetching next Person: %v", err)
+			break
+		}
+
+		switch field {
+		case "Battery":
+			if cm.LastSOC.Data > 0 {
+				break endloop
+			}
+		case "ChargerVolts":
+			if cm.LastVolts.Data > 0 {
+				break endloop
+			}
+		case "ChargerAmps":
+			if cm.LastAmps.Data > 0 {
+				break endloop
+			}
+		}
+	}
+	return &cm, nil
 }
 
 func GetCarStatus(ctx context.Context, deviceID string) (*types.CarStatus, error) {
