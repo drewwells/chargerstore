@@ -25,9 +25,10 @@ const (
 	MAX_KWH = 16.5 * MAX_PCT
 	MIN_KWH = 16.5 * MIN_PCT
 
-	POWER_120V_8A  = 0.96  // 120 * 8 / 1000
-	POWER_120V_12A = 1.44  // 120 * 12 / 1000
-	POWER_240V     = 3.312 // 240 * 13.8 / 1000
+	// Power levels reduced due to output emitted by car
+	POWER_120V_8A  = 0.40 // 0.96  // 120 * 8 / 1000
+	POWER_120V_12A = 0.6  // 1.44  // 120 * 12 / 1000
+	POWER_240V     = 1.5  // 3.312 // 240 * 13.8 / 1000
 )
 
 // Power provided in kwh
@@ -84,6 +85,9 @@ func BatteryCharging(lastBattery types.LastMsg, lastPower types.LastMsg) types.B
 	if currentPct == 0 {
 		return types.BatteryCharging{}
 	}
+
+	// a lot of power is lost transferring to batteries, guessing 40% loss
+	lastPower.Data = lastPower.Data * .5625
 
 	deficit := float64((MAX_PCT - currentPct) * MAX_ENERGY)
 	regained := guessRecharged(lastBattery, lastPower)
