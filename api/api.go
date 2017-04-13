@@ -83,11 +83,11 @@ Battery %: {{.battery.State.Percent}}
   </p>
   <p>
     Power: {{.status.LastPower.Data}}<br/>
-    Last Updated: <script>writeDate(new Date({{.status.LastPower.PublishTime.Unix}}));</script>
+    Last Updated: <script>writeDate({{marshal .status.LastPower.PublishTime}});</script>
   </p>
   <p>
     Volts: {{.status.LastVolts.Data}}<br/>
-    Last Updated: <script>writeDate(new {{marshal .status.LastVolts.PublishTime}});</script>
+    Last Updated: <script>writeDate({{marshal .status.LastVolts.PublishTime}});</script>
   </p>
   <p>
     Amps: {{.status.LastAmps.Data}}<br/>
