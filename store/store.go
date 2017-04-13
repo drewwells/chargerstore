@@ -64,6 +64,10 @@ endloop:
 			if cm.LastAmps.Data > -1 {
 				break endloop
 			}
+		case "ChargerPower":
+			if cm.LastPower.Data > 0 {
+				break endloop
+			}
 		}
 	}
 	return &cm, nil
@@ -84,12 +88,17 @@ var GetCarStatus = func(ctx context.Context, deviceID string) (*types.CarStatus,
 	if err != nil {
 		return nil, err
 	}
+	power, err := getLastField(ctx, qry, "ChargerPower")
+	if err != nil {
+		return nil, err
+	}
 
 	return &types.CarStatus{
 		DeviceID:  deviceID,
 		LastSOC:   bat.LastSOC,
 		LastAmps:  amps.LastAmps,
 		LastVolts: volts.LastVolts,
+		LastPower: power.LastPower,
 		CreatedAt: bat.CreatedAt,
 	}, nil
 }

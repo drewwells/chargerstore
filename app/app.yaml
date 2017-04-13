@@ -9,6 +9,9 @@ handlers:
 - url: /.*
   script: _go_app
 
+builtins:
+- remote_api: on
+
 skip_files:
  - ^(.*/)?#.*#$
  - ^(.*/)?.*~$

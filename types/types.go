@@ -44,13 +44,15 @@ type CarMsg struct {
 	Fuel              float64   `json:"fuel_tank"`
 	ChargerAmps       float64   `json:"amps_in"`
 	ChargerVolts      float64   `json:"volts_in"`
+	ChargerPower      float64   `json:"power_in"`
 	Battery           float64   `json:"soc"`
-	HVDischargeAmps   float64   `json:"hv_amps"`
-	HVVolts           float64   `json:"hv_volts"`
 	EVMilesThisCharge float64   `json:"ev_miles_cycle"`
 	PublishTime       time.Time `json:"publish_time"`
 	Event             string    `json:"event"`
 	DeviceID          string    `json:"device_id"`
+
+	//HVDischargeAmps   float64   `json:"hv_amps"`
+	//HVVolts           float64   `json:"hv_volts"`
 }
 
 type CarStatus struct {
@@ -58,6 +60,7 @@ type CarStatus struct {
 	LastSOC   LastMsg   `json:"soc"`
 	LastAmps  LastMsg   `json:"amps"`
 	LastVolts LastMsg   `json:"volts"`
+	LastPower LastMsg   `json:"power"`
 	CreatedAt time.Time `json:"created_at"`
 }
 

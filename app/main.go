@@ -66,12 +66,10 @@ func lastStatusHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	resp := make(map[string]types.LastMsg)
-	resp["staticamps"] = chargerstore.LastAmps
-	resp["staticvolts"] = chargerstore.LastVolts
-	resp["staticsoc"] = chargerstore.LastSOC
 	resp["amps"] = stat.LastAmps
 	resp["volts"] = stat.LastVolts
 	resp["soc"] = stat.LastSOC
+	resp["power"] = stat.LastPower
 	marshal(w, resp)
 }
 
@@ -84,29 +82,19 @@ func batteryStatusHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	marshal(w, math.BatteryCharging(
 		stat.LastSOC,
-		stat.LastAmps,
-		stat.LastVolts,
+		stat.LastPower,
 	))
 }
 
 func rateHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := appengine.NewContext(r)
-	// TODO: read deviceid from url or account
-	devID := "520041000351353337353037"
-	stat, err := store.GetCarStatus(ctx, devID)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	p := math.Power(stat.LastVolts.Data, stat.LastAmps.Data)
 	marshal(w, struct {
 		Amps  float64 `json:"amps"`
 		Volts float64 `json:"volts"`
 		Power float64 `json:"power"`
 	}{
-		Power: p,
 		Amps:  chargerstore.LastAmps.Data,
 		Volts: chargerstore.LastVolts.Data,
+		Power: chargerstore.LastPower.Data,
 	})
 }
 

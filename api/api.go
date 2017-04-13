@@ -82,6 +82,10 @@ Battery %: {{.battery.State.Percent}}
     Last Updated: <script>writeDate({{marshal .status.LastSOC.PublishTime}});</script>
   </p>
   <p>
+    Power: {{.status.LastPower.Data}}<br/>
+    Last Updated: <script>writeDate(new Date({{.status.LastPower.PublishTime.Unix}}));</script>
+  </p>
+  <p>
     Volts: {{.status.LastVolts.Data}}<br/>
     Last Updated: <script>writeDate(new {{marshal .status.LastVolts.PublishTime}});</script>
   </p>
@@ -108,8 +112,7 @@ Battery %: {{.battery.State.Percent}}
 		"status": stat,
 		"battery": math.BatteryCharging(
 			stat.LastSOC,
-			stat.LastAmps,
-			stat.LastVolts,
+			stat.LastPower,
 		)}
 
 	funcMap := template.FuncMap{

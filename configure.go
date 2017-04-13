@@ -107,6 +107,7 @@ func Process(ctx context.Context, msg *pubsub.Message) (types.CarMsg, error) {
 		LastSOC:   LastSOC,
 		LastAmps:  LastAmps,
 		LastVolts: LastVolts,
+		LastPower: LastPower,
 		CreatedAt: time.Now(),
 	})
 
@@ -118,6 +119,14 @@ func processLastMsg(cm types.CarMsg) {
 	if cm.Battery > 0 {
 		LastSOC = types.LastMsg{
 			Data:        cm.Battery / 100, // battery is sent as pct * 100
+			PublishTime: cm.PublishTime,
+		}
+	}
+
+	if cm.ChargerPower > -1 {
+		LastPower = types.LastMsg{
+			// convert wh to kwh
+			Data:        cm.ChargerPower / 1000,
 			PublishTime: cm.PublishTime,
 		}
 	}

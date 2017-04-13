@@ -26,3 +26,8 @@ clouddeploy: #pkgandupload
     --metadata-from-file startup-script=scripts/startup.sh \
     --zone us-central1-f \
     --tags http-server
+
+export:
+	/opt/google-cloud-sdk/platform/google_appengine/appcfg.py download_data -A s~particle-volt --url=http://particle-volt.appspot.com/_ah/remote_api/ --filename=data.csv
+
+import:
