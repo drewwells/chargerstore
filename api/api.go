@@ -68,9 +68,6 @@ Battery %: {{.battery.State.Percent}}<br/>
 Last Updated: <script>writeDate({{marshal .battery.State.LastSOCTime}});</script>
 </p>
 <p>
-Current Charging done in: <script>round({{.battery.Current.Minutes}});</script> mins
-</p>
-<p>
 Battery %: {{.battery.State.Percent}}
 </p>
   <pre> {{ marshal .status }} </pre>
