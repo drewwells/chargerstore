@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"time"
 
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/log"
@@ -64,13 +65,16 @@ function round(float) {
 </script>
 <body>
 <p>
+Charging done: <script>writeDate({{marshal .done}});</script> <script>round({{marshal .battery.Current}});</script> mins
+</p>
+<p>
 Battery %: {{.battery.State.Percent}}<br/>
 Last Updated: <script>writeDate({{marshal .battery.State.LastSOCTime}});</script>
+
 </p>
 <p>
 Battery %: {{.battery.State.Percent}}
 </p>
-  <pre> {{ marshal .status }} </pre>
   <p>
     Device ID: {{.status.DeviceID}}
   </p>
@@ -105,12 +109,21 @@ Battery %: {{.battery.State.Percent}}
 
 	log.Infof(ctx, "%#v\n", stat)
 
+	bc := math.BatteryCharging(
+		stat.LastSOC,
+		stat.LastPower,
+	)
+
+	var cd time.Time
+	if bc.Current.Duration > 0 {
+		cd = time.Now().Add(bc.Current.Duration)
+	}
+
 	m := map[string]interface{}{
-		"status": stat,
-		"battery": math.BatteryCharging(
-			stat.LastSOC,
-			stat.LastPower,
-		)}
+		"status":  stat,
+		"battery": bc,
+		"done":    cd,
+	}
 
 	funcMap := template.FuncMap{
 		// The name "title" is what the function will be called in the template text.
