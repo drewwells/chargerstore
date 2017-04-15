@@ -64,20 +64,15 @@ function round(float) {
 }
 </script>
 <body>
-<p>
-Charging done: <script>writeDate({{marshal .done}});</script> <script>round({{marshal .battery.Current}});</script> mins
-</p>
-<p>
-Battery %: {{.battery.State.Percent}}<br/>
-Last Updated: <script>writeDate({{marshal .battery.State.LastSOCTime}});</script>
-
-</p>
-<p>
-Battery %: {{.battery.State.Percent}}
-</p>
   <p>
-    Device ID: {{.status.DeviceID}}
+    Charging done: <script>writeDate({{marshal .done}});</script> (<script>round({{marshal .battery.Current.Duration.Minutes}});</script>mins)
   </p>
+  <p>
+    Battery %: {{.battery.State.Percent}}<br/>
+    Last Updated: <script>writeDate({{marshal .battery.State.LastSOCTime}});</script>
+  </p>
+<div>
+  <h4>Detailed Stats</h4>
   <p>
     SOC: {{.status.LastSOC.Data}}<br/>
     Last Updated: <script>writeDate({{marshal .status.LastSOC.PublishTime}});</script>
@@ -94,6 +89,10 @@ Battery %: {{.battery.State.Percent}}
     Amps: {{.status.LastAmps.Data}}<br/>
     Last Updated: <script>writeDate({{marshal .status.LastAmps.PublishTime}});</script>
   </p>
+  <p>
+    Device ID: {{.status.DeviceID}}
+  </p>
+</div>
 </body>
 </html>
 `
