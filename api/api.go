@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"time"
 
+	"golang.org/x/net/context"
+
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/log"
 
@@ -16,6 +18,10 @@ import (
 	"github.com/drewwells/chargerstore/types"
 	"github.com/gorilla/mux"
 )
+
+var configureContext = func(ctx context.Context) context.Context {
+	return ctx
+}
 
 type options struct {
 	*mux.Router
@@ -99,6 +105,7 @@ function round(float) {
 	)
 
 	ctx := appengine.NewContext(r)
+	ctx = configureContext(ctx)
 	// TODO: read deviceid from url or account
 	stat, err := store.GetCarStatus(ctx, devID)
 	if err != nil {
