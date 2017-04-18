@@ -2,6 +2,7 @@ package store
 
 import (
 	"fmt"
+	"time"
 
 	"golang.org/x/net/context"
 
@@ -73,32 +74,54 @@ endloop:
 	return &cm, nil
 }
 
+// GetCarStatus fetches the current deviceID's vehicle status. It
+// will return the cache unless it is found to be missing
 var GetCarStatus = func(ctx context.Context, deviceID string) (*types.CarStatus, error) {
 
 	qry := aedatastore.NewQuery(statusbucket).Filter("DeviceID =", deviceID)
-	bat, err := getLastField(ctx, qry, "Battery")
-	if err != nil {
-		return nil, err
+
+	if LastSOC.PublishTime.IsZero() {
+		bat, err := getLastField(ctx, qry, "Battery")
+		if err != nil {
+			log.Errorf(ctx, "%s", err)
+		} else {
+			LastSOC = bat.LastSOC
+		}
 	}
-	volts, err := getLastField(ctx, qry, "ChargerVolts")
-	if err != nil {
-		return nil, err
+
+	if LastVolts.PublishTime.IsZero() {
+		volts, err := getLastField(ctx, qry, "ChargerVolts")
+		if err != nil {
+			log.Errorf(ctx, "%s", err)
+		} else {
+			LastVolts = volts.LastVolts
+		}
 	}
-	amps, err := getLastField(ctx, qry, "ChargerAmps")
-	if err != nil {
-		return nil, err
+
+	if LastAmps.PublishTime.IsZero() {
+		amps, err := getLastField(ctx, qry, "ChargerAmps")
+		if err != nil {
+			log.Errorf(ctx, "%s", err)
+		} else {
+			LastAmps = amps.LastAmps
+		}
 	}
-	power, err := getLastField(ctx, qry, "ChargerPower")
-	if err != nil {
-		return nil, err
+
+	if LastPower.PublishTime.IsZero() {
+		power, err := getLastField(ctx, qry, "ChargerPower")
+		if err != nil {
+			log.Errorf(ctx, "%s", err)
+		} else {
+			LastPower = power.LastPower
+		}
 	}
 
 	return &types.CarStatus{
 		DeviceID:  deviceID,
-		LastSOC:   bat.LastSOC,
-		LastAmps:  amps.LastAmps,
-		LastVolts: volts.LastVolts,
-		LastPower: power.LastPower,
-		CreatedAt: bat.CreatedAt,
+		LastSOC:   LastSOC,
+		LastAmps:  LastAmps,
+		LastVolts: LastVolts,
+		LastPower: LastPower,
+		CreatedAt: time.Now(),
 	}, nil
 }
