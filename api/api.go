@@ -58,6 +58,10 @@ p {
   padding: 5px;
   border: solid 1px green;
 }
+.error {
+  background-color: red;
+  color: #fff;
+}
 </style>
 <script>
 function writeDate(str) {
@@ -70,9 +74,13 @@ function round(float) {
 }
 </script>
 <body>
+{{if .IsCharging}}
   <p>
     Charging done: <script>writeDate({{marshal .done}});</script> (<script>round({{marshal .battery.Current.Duration.Minutes}});</script>mins)
   </p>
+{{else}}
+  <p class="error">Not Charging</p>
+{{end}}
   <p>
     Battery %: {{.battery.State.Percent}}<br/>
     Last Updated: <script>writeDate({{marshal .battery.State.LastSOCTime}});</script>
@@ -126,9 +134,10 @@ function round(float) {
 	}
 
 	m := map[string]interface{}{
-		"status":  stat,
-		"battery": bc,
-		"done":    cd,
+		"isCharging": stat.LastPower.Data > 0,
+		"status":     stat,
+		"battery":    bc,
+		"done":       cd,
 	}
 
 	funcMap := template.FuncMap{
