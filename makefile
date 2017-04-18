@@ -1,8 +1,14 @@
 cloudserve:
 	cd app;	GCLOUD_PROJECT=particle-volt; PUBSUB_TOPIC=CAR; go run *.go
 
+reflex:
+	go get github.com/cespare/reflex
+
+watch: reflex
+	reflex -s -t 50ms -r 'go$$' make local
+
 local:
-	cd app; go build -i -v; ./app
+	cd app; go build -i -v && ./app
 
 serve:
 	dev_appserver.py app/app.yaml

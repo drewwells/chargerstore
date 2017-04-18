@@ -19,34 +19,23 @@ func main() {
 }
 
 func init() {
-	// opts, err := chargerstore.NewPS()
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
-	//opts.Subscribe("CAR", "carpull")
 	http.HandleFunc("/api/v1/car/id/laststatus", lastStatusHandler)
 	http.HandleFunc("/api/v1/car/id/chargerate", rateHandler)
 	http.HandleFunc("/api/v1/car/id/battery", batteryStatusHandler)
-
-	// http.HandleFunc("/test", func(w http.ResponseWriter, r *http.Request) {
-	// 	ctx := appengine.NewContext(r)
-	// 	w.Write([]byte("to test\n"))
-	// 	test(ctx)
-	// 	w.Write([]byte("wrote it"))
-	// })
 
 	router, err := api.New()
 	if err != nil {
 		slog.Fatal(err)
 	}
 	http.Handle("/", router)
+	slog.Println("Web Server started")
 }
 
 func marshal(w http.ResponseWriter, v interface{}) error {
 	bs, err := json.MarshalIndent(v, "", "  ")
 	if err != nil {
 		return err
+
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(bs)
