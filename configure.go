@@ -104,10 +104,10 @@ func Process(ctx context.Context, msg *pubsub.Message) (types.CarMsg, error) {
 
 	err := store.PutCarStatus(ctx, &types.CarStatus{
 		DeviceID:  msg.Attributes["device_id"],
-		LastSOC:   LastSOC,
-		LastAmps:  LastAmps,
-		LastVolts: LastVolts,
-		LastPower: LastPower,
+		LastSOC:   store.LastSOC,
+		LastAmps:  store.LastAmps,
+		LastVolts: store.LastVolts,
+		LastPower: store.LastPower,
 		CreatedAt: time.Now(),
 	})
 
@@ -117,7 +117,7 @@ func Process(ctx context.Context, msg *pubsub.Message) (types.CarMsg, error) {
 func processLastMsg(cm types.CarMsg) {
 	// battery tends to report 0, probably an error on C side
 	if cm.Battery > 0 {
-		LastSOC = types.LastMsg{
+		store.LastSOC = types.LastMsg{
 			Data:        cm.Battery / 100, // battery is sent as pct * 100
 			PublishTime: cm.PublishTime,
 		}
@@ -125,22 +125,22 @@ func processLastMsg(cm types.CarMsg) {
 
 	// Power constantly reports 0, always ignore these unless it's been
 	// 5 minutes since a non-zero update has been published
-	if cm.ChargerPower > -1 || time.Since(LastPower.PublishTime) > 5*time.Minute {
-		LastPower = types.LastMsg{
+	if cm.ChargerPower > -1 || time.Since(store.LastPower.PublishTime) > 5*time.Minute {
+		store.LastPower = types.LastMsg{
 			Data:        cm.ChargerPower / 1000,
 			PublishTime: cm.PublishTime,
 		}
 	}
 
 	if cm.ChargerAmps > -1 {
-		LastAmps = types.LastMsg{
+		store.LastAmps = types.LastMsg{
 			Data:        cm.ChargerAmps,
 			PublishTime: cm.PublishTime,
 		}
 	}
 
 	if cm.ChargerVolts > -1 {
-		LastVolts = types.LastMsg{
+		store.LastVolts = types.LastMsg{
 			Data:        cm.ChargerVolts,
 			PublishTime: cm.PublishTime,
 		}

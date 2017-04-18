@@ -1,4 +1,4 @@
-package chargerstore
+package store
 
 import "github.com/drewwells/chargerstore/types"
 

@@ -8,7 +8,6 @@ import (
 
 	"google.golang.org/appengine"
 
-	"github.com/drewwells/chargerstore"
 	"github.com/drewwells/chargerstore/api"
 	"github.com/drewwells/chargerstore/math"
 	"github.com/drewwells/chargerstore/store"
@@ -92,9 +91,9 @@ func rateHandler(w http.ResponseWriter, r *http.Request) {
 		Volts float64 `json:"volts"`
 		Power float64 `json:"power"`
 	}{
-		Amps:  chargerstore.LastAmps.Data,
-		Volts: chargerstore.LastVolts.Data,
-		Power: chargerstore.LastPower.Data,
+		Amps:  store.LastAmps.Data,
+		Volts: store.LastVolts.Data,
+		Power: store.LastPower.Data,
 	})
 }
 
