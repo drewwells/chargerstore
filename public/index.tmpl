@@ -1,0 +1,61 @@
+<html>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+* {
+font-size: 24px;
+}
+p {
+  padding: 5px;
+  border: solid 1px green;
+}
+.error {
+  background-color: red;
+  color: #fff;
+}
+</style>
+<script>
+function writeDate(str) {
+  var d = new Date(JSON.parse(str));
+  document.write(d.toLocaleString());
+}
+function round(float) {
+  var rounded = Math.round(float*100)/100;
+  document.write(rounded);
+}
+</script>
+<body>
+{{if .IsCharging}}
+  <p>
+    Charging done: <script>writeDate({{marshal .done}});</script> (<script>round({{marshal .battery.Current.Duration.Minutes}});</script>mins)
+  </p>
+{{else}}
+  <p class="error">Not Charging</p>
+{{end}}
+  <p>
+    Battery %: {{.battery.State.Percent}}<br/>
+    Last Updated: <script>writeDate({{marshal .battery.State.LastSOCTime}});</script>
+  </p>
+<div>
+  <h4>Detailed Stats</h4>
+  <p>
+    SOC: {{.status.LastSOC.Data}}<br/>
+    Last Updated: <script>writeDate({{marshal .status.LastSOC.PublishTime}});</script>
+  </p>
+  <p>
+    Power: {{.status.LastPower.Data}}<br/>
+    Last Updated: <script>writeDate({{marshal .status.LastPower.PublishTime}});</script>
+  </p>
+  <p>
+    Volts: {{.status.LastVolts.Data}}<br/>
+    Last Updated: <script>writeDate({{marshal .status.LastVolts.PublishTime}});</script>
+  </p>
+  <p>
+    Amps: {{.status.LastAmps.Data}}<br/>
+    Last Updated: <script>writeDate({{marshal .status.LastAmps.PublishTime}});</script>
+  </p>
+  <p>
+    Device ID: {{.status.DeviceID}}
+  </p>
+</div>
+</body>
+</html>

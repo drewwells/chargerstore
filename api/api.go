@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
+	"io/ioutil"
 	"net/http"
+	"path/filepath"
 	"time"
 
 	"golang.org/x/net/context"
@@ -18,6 +20,10 @@ import (
 	"github.com/drewwells/chargerstore/types"
 	"github.com/gorilla/mux"
 )
+
+var newContext = func(r *http.Request) context.Context {
+	return appengine.NewContext(r)
+}
 
 var configureContext = func(ctx context.Context) context.Context {
 	return ctx
@@ -34,86 +40,64 @@ func New() (http.Handler, error) {
 		Router: r,
 	}
 
-	r.HandleFunc("/", o.index)
-	r.HandleFunc("/{id}/status", o.status)
+	r.HandleFunc("/api", o.index)
+	r.HandleFunc("/{id}/status", o.tmplStatus)
 
 	r.HandleFunc("/api/v1/summary", o.summaryHandler)
+	r.HandleFunc("/api/v1/status", o.statusHandler)
 	r.HandleFunc("/pubsub/push", o.pushHandler)
+
+	// Static files
+	r.PathPrefix("/public").Handler(http.StripPrefix("/public", http.FileServer(http.Dir("../public/"))))
+
 	return o, nil
 
 }
 
 const devID = "520041000351353337353037"
 
-func (o *options) status(w http.ResponseWriter, r *http.Request) {
-	const (
-		overlay = `
-<html>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<style>
-* {
-font-size: 24px;
+func loadTmpl(ctx context.Context, path string) string {
+	absPath, err := filepath.Abs(filepath.Join("..", "public", path))
+	if err != nil {
+		log.Errorf(ctx, "can not find file %s: %s", absPath, err)
+		return ""
+	}
+	bs, err := ioutil.ReadFile(absPath)
+	if err != nil {
+		log.Errorf(ctx, "failed to read file %s: %s", absPath, err)
+	}
+	return string(bs)
 }
-p {
-  padding: 5px;
-  border: solid 1px green;
-}
-.error {
-  background-color: red;
-  color: #fff;
-}
-</style>
-<script>
-function writeDate(str) {
-  var d = new Date(JSON.parse(str));
-  document.write(d.toLocaleString());
-}
-function round(float) {
-  var rounded = Math.round(float*100)/100;
-  document.write(rounded);
-}
-</script>
-<body>
-{{if .IsCharging}}
-  <p>
-    Charging done: <script>writeDate({{marshal .done}});</script> (<script>round({{marshal .battery.Current.Duration.Minutes}});</script>mins)
-  </p>
-{{else}}
-  <p class="error">Not Charging</p>
-{{end}}
-  <p>
-    Battery %: {{.battery.State.Percent}}<br/>
-    Last Updated: <script>writeDate({{marshal .battery.State.LastSOCTime}});</script>
-  </p>
-<div>
-  <h4>Detailed Stats</h4>
-  <p>
-    SOC: {{.status.LastSOC.Data}}<br/>
-    Last Updated: <script>writeDate({{marshal .status.LastSOC.PublishTime}});</script>
-  </p>
-  <p>
-    Power: {{.status.LastPower.Data}}<br/>
-    Last Updated: <script>writeDate({{marshal .status.LastPower.PublishTime}});</script>
-  </p>
-  <p>
-    Volts: {{.status.LastVolts.Data}}<br/>
-    Last Updated: <script>writeDate({{marshal .status.LastVolts.PublishTime}});</script>
-  </p>
-  <p>
-    Amps: {{.status.LastAmps.Data}}<br/>
-    Last Updated: <script>writeDate({{marshal .status.LastAmps.PublishTime}});</script>
-  </p>
-  <p>
-    Device ID: {{.status.DeviceID}}
-  </p>
-</div>
-</body>
-</html>
-`
-	)
 
-	ctx := appengine.NewContext(r)
-	ctx = configureContext(ctx)
+func (o *options) statusHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := newContext(r)
+	// TODO: read deviceid from url or account
+
+	stat, err := store.GetCarStatus(ctx, devID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	resp := make(map[string]interface{})
+	resp["amps"] = stat.LastAmps
+	resp["volts"] = stat.LastVolts
+	resp["soc"] = stat.LastSOC
+	resp["power"] = stat.LastPower
+	resp["charge"] = math.BatteryCharging(
+		stat.LastSOC,
+		stat.LastPower,
+	)
+	if bc.Current.Duration > 0 {
+		resp["done"] = cd
+	}
+
+	marshal(w, resp)
+}
+
+func (o *options) tmplStatus(w http.ResponseWriter, r *http.Request) {
+	ctx := newContext(r)
+
+	overlay := loadTmpl(ctx, "index.html")
 	// TODO: read deviceid from url or account
 	stat, err := store.GetCarStatus(ctx, devID)
 	if err != nil {
@@ -172,13 +156,10 @@ func (o *options) index(w http.ResponseWriter, r *http.Request) {
 		// funcs     = template.FuncMap{"join": strings.Join}
 		guardians = []string{
 			"/id/status",
-			"/api/v1/summary",
-			"/api/v1/car/id/laststatus",
-			"/api/v1/car/id/chargerate",
-			"/api/v1/car/id/battery",
+			"/api/v1/status",
 		}
 	)
-	ctx := appengine.NewContext(r)
+	ctx := newContext(r)
 	overlayTmpl, err := template.New("overlay").Parse(overlay)
 	if err != nil {
 		log.Errorf(ctx, err.Error())

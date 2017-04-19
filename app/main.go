@@ -11,7 +11,6 @@ import (
 	"github.com/drewwells/chargerstore/api"
 	"github.com/drewwells/chargerstore/math"
 	"github.com/drewwells/chargerstore/store"
-	"github.com/drewwells/chargerstore/types"
 )
 
 func main() {
@@ -19,9 +18,8 @@ func main() {
 }
 
 func init() {
-	http.HandleFunc("/api/v1/car/id/laststatus", lastStatusHandler)
-	http.HandleFunc("/api/v1/car/id/chargerate", rateHandler)
-	http.HandleFunc("/api/v1/car/id/battery", batteryStatusHandler)
+	http.HandleFunc("/api/v1/id/chargerate", rateHandler)
+	http.HandleFunc("/api/v1/id/battery", batteryStatusHandler)
 
 	router, err := api.New()
 	if err != nil {
@@ -43,23 +41,6 @@ func marshal(w http.ResponseWriter, v interface{}) error {
 }
 
 const devID = "520041000351353337353037"
-
-func lastStatusHandler(w http.ResponseWriter, r *http.Request) {
-	ctx := appengine.NewContext(r)
-	// TODO: read deviceid from url or account
-
-	stat, err := store.GetCarStatus(ctx, devID)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	resp := make(map[string]types.LastMsg)
-	resp["amps"] = stat.LastAmps
-	resp["volts"] = stat.LastVolts
-	resp["soc"] = stat.LastSOC
-	resp["power"] = stat.LastPower
-	marshal(w, resp)
-}
 
 func batteryStatusHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := appengine.NewContext(r)
