@@ -70,6 +70,9 @@ class Status extends React.Component {
           SOC: {soc}
         </p>
         <p>
+			    Power: {this.state.power.Data}
+        </p>
+        <p>
           Volts: {this.state.volts.Data}
         </p>
         <p>
