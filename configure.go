@@ -125,7 +125,7 @@ func processLastMsg(cm types.CarMsg) {
 
 	// Power constantly reports 0, always ignore these unless it's been
 	// 5 minutes since a non-zero update has been published
-	if cm.ChargerPower > -1 || time.Since(store.LastPower.PublishTime) > 5*time.Minute {
+	if cm.ChargerPower > 0 || time.Since(store.LastPower.PublishTime) > 5*time.Minute {
 		store.LastPower = types.LastMsg{
 			Data:        cm.ChargerPower / 1000,
 			PublishTime: cm.PublishTime,
