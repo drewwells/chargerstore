@@ -30,11 +30,15 @@ class Status extends React.Component {
     if (isCharging) {
       let dDone = new Date(this.state.done)
       pChrg = (
-        <div>
-          <p>Finish at {dDone.toLocaleString()}</p>
+        <div style={chargeDone}>
+          <p>CHARGING DONE {dDone.toLocaleString()}</p>
         </div>
       )
     }
+		let now = new Date()
+		let minutes = 60*1000
+		let est120v = new Date(now.getTime() + c.v120_max.Minutes * minutes)
+		let est240v = new Date(now.getTime() + c.v240.Minutes * minutes)
 
     return (
       <div>
@@ -42,6 +46,12 @@ class Status extends React.Component {
         <p class="">
           {pChrg}
         </p>
+				<p>
+					Estimate at 120V: {est120v.toLocaleString()}
+				</p>
+				<p>
+					Estimate at 240V: {est240v.toLocaleString()}
+				</p>
       </div>
     )
   }
@@ -56,7 +66,7 @@ class Status extends React.Component {
     }
     return (
       <div>
-        <p>
+        <p style={socStyle}>
           SOC: {soc}
         </p>
         <p>
@@ -77,6 +87,21 @@ class Status extends React.Component {
       </div>
     )
   }
+}
+
+const socStyle = {
+	fontSize: 18,
+	fontWeight: 'bold',
+	color: 'purple',
+}
+
+const chargeDone = {
+	borderStyle: 'solid',
+	borderWidth: 2,
+	borderColor: 'red',
+	color: 'green',
+	padding: 5,
+	textAlign: 'center',
 }
 
 function App() {
