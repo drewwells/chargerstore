@@ -110,7 +110,7 @@ const chargeDone = {
 function App() {
   return (
     <div>
-      <Status />
+			<Status />
     </div>
   );
 }
