@@ -9,6 +9,9 @@ handlers:
 - url: /.*
   script: _go_app
 
+- url: /ui/
+  static_dir: public/ui/
+
 builtins:
 - remote_api: on
 
