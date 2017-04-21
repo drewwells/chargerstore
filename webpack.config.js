@@ -31,9 +31,10 @@ module.exports = {
     contentBase:  path.join(__dirname, "public"),
     proxy: {
       '/api': {
-        target: 'http://localhost:8081',
-        //target: 'https://particle-volt.appspot.com',
-        secure: false
+        //target: 'http://localhost:8081',
+        target: 'https://particle-volt.appspot.com',
+        secure: false,
+        changeOrigin: true
       }
     }
   }
