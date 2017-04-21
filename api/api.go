@@ -41,7 +41,7 @@ func New() (http.Handler, error) {
 	}
 
 	r.HandleFunc("/api", o.index)
-	r.HandleFunc("/{id}/status", o.tmplStatus)
+	r.HandleFunc("/id/status", o.tmplStatus)
 
 	r.HandleFunc("/api/v1/summary", o.summaryHandler)
 	r.HandleFunc("/api/v1/status", o.statusHandler)
@@ -83,12 +83,14 @@ func (o *options) statusHandler(w http.ResponseWriter, r *http.Request) {
 	resp["volts"] = stat.LastVolts
 	resp["soc"] = stat.LastSOC
 	resp["power"] = stat.LastPower
-	resp["charge"] = math.BatteryCharging(
+	bc := math.BatteryCharging(
 		stat.LastSOC,
 		stat.LastPower,
 	)
+	resp["charge"] = bc
+
 	if bc.Current.Duration > 0 {
-		resp["done"] = cd
+		resp["done"] = time.Now().Add(bc.Current.Duration)
 	}
 
 	marshal(w, resp)
@@ -155,8 +157,9 @@ func (o *options) index(w http.ResponseWriter, r *http.Request) {
 	var (
 		// funcs     = template.FuncMap{"join": strings.Join}
 		guardians = []string{
-			"/id/status",
 			"/api/v1/status",
+			"/api/v1/summary",
+			"/id/status",
 		}
 	)
 	ctx := newContext(r)
