@@ -46,18 +46,48 @@ class Status extends React.Component {
 		let est120v = new Date(now.getTime() + c.v120_max.Minutes * minutes)
 		let est240v = new Date(now.getTime() + c.v240.Minutes * minutes)
 
+		let charge = this.state.charge;
+		let regained = charge.state.regained_kwh
+
+		regained = Math.floor(regained*1000)/1000
+    let soc = this.state.soc.Data
+
+		let regained_pct = (soc + regained/16.5)
+		let current_miles = this.prettyRound(this.milesFromPct(soc), 2)
+		let regained_to_miles = this.prettyRound(this.milesFromPct(regained_pct), 2)
+
+		let renderSOC = [(
+			<p>
+          SOC: <span style={socStyle}>{current_miles}miles</span> ({this.prettyRound(soc*100)}%)
+      </p>
+		)]
+
+		// if we're charging, show estimate power level
+		if (isCharging) {
+			renderSOC.push(
+        <p>
+			    EST: <span style={socStyle}>{regained_to_miles} miles</span> ({this.prettyRound(regained_pct*100)}%)
+			  </p>
+			)
+		}
+
     return (
       <div>
-        <span class="info">{this.state.charge.estimate?'Estimate':''}</span>
+        <span class="info">{this.state.charge.estimate?'SOC hasn\'t been reported in a while':''}</span>
         <p class="">
           {pChrg}
         </p>
-				<p>
-					Estimate at 120V: {est120v.toLocaleString()}
-				</p>
-				<p>
-					Estimate at 240V: {est240v.toLocaleString()}
-				</p>
+				{renderSOC}
+				<div>
+					<hr/>
+					Charging times based on voltage input
+					<p>
+						120V: {est120v.toLocaleString()}
+					</p>
+					<p>
+						240V: {est240v.toLocaleString()}
+					</p>
+				</div>
       </div>
     )
   }
@@ -74,26 +104,12 @@ class Status extends React.Component {
     if (!this.state.soc) {
       return (<div/>)
     }
-		let charge = this.state.charge;
-		let regained = charge.state.regained_kwh
 		let now = new Date()
+		let charge = this.state.charge
 		let last_reported_soc = this.prettyRound(-1*(new Date(charge.state.last_reported_soc)-now)/(60*60*1000))
-
-		regained = Math.floor(regained*1000)/1000
-    let soc = this.state.soc.Data
-
-		let regained_pct = (soc + regained/16.5)
-		let current_miles = this.prettyRound(this.milesFromPct(soc), 2)
-		let regained_to_miles = this.prettyRound(this.milesFromPct(regained_pct), 2)
-		console.log(charge)
     return (
       <div>
-        <p>
-          SOC: <span style={socStyle}>{current_miles}miles</span> ({this.prettyRound(soc*100)}%)
-        </p>
-        <p>
-			    EST: <span style={socStyle}>{regained_to_miles} miles</span> ({this.prettyRound(regained_pct*100)}%)
-			  </p>
+				<hr/>
 				<p>
 					<h4>Raw Stats</h4>
 				</p>
@@ -101,16 +117,16 @@ class Status extends React.Component {
 					Last SOC: {last_reported_soc}hrs ago
 				</p>
 				<p>
-					Regained: {this.prettyRound(regained)}kwh
+					Regained: {this.prettyRound(charge.state.regained_kwh)}kwh
 				</p>
         <p>
-			    Power: {this.state.power.Data}
+			    Power: {this.state.power.Data} kw
         </p>
         <p>
-          Volts: {this.state.volts.Data}
+          Volts: {this.state.volts.Data} volts
         </p>
         <p>
-          Amps: {this.state.amps.Data}
+          Amps: {this.state.amps.Data} amps
         </p>
       </div>
     )
