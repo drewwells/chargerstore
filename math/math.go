@@ -61,7 +61,7 @@ func guessRecharged(lastBattery types.LastMsg, lastPower types.LastMsg) float64 
 	since := time.Since(lastBattery.PublishTime)
 
 	hrs := float64(since) / float64(time.Hour)
-	if lastPower.Data == 0 {
+	if lastPower.Data <= 0 {
 		return 0
 	}
 
