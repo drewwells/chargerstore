@@ -33,8 +33,14 @@ func PutCarStatus(ctx context.Context, status *types.CarStatus) error {
 }
 
 func getLastField(ctx context.Context, qry *aedatastore.Query, field string) (*types.CarStatus, error) {
-	q := qry.Order("-CreatedAt").
-		Limit(20) // 4x records per minute
+	q := qry.Order("-CreatedAt")
+
+	// Battery lookup is special, just keep looking backwards in time for it
+	if field == "Battery" {
+		q = q.Limit(10000) // 2 days
+	} else {
+		q = q.Limit(20) // 4x records per minute
+	}
 
 	var cm types.CarStatus
 	it := q.Run(ctx)
