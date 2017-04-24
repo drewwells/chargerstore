@@ -11,13 +11,19 @@ class Status extends React.Component {
     fetch("/api/v1/status", {})
       .then((r) => r.json())
       .then((r) => {
-        console.log(r)
+        console.log(r.charge.state)
         this.setState(r)
       })
   }
 
   componentWillUnmount() {
   }
+
+	milesFromPct(pct) {
+		pct = pct - .2
+		let factor = 35/(0.84313728-0.2)
+		return factor * pct
+	}
 
   renderChargeStatus() {
     let c = this.state.charge
@@ -56,19 +62,43 @@ class Status extends React.Component {
     )
   }
 
+	prettyRound(num, places) {
+		if (!places) {
+			places = 3
+		}
+		let mult = Math.pow(10, places)
+		return Math.floor(num*mult)/mult
+	}
+
   renderRawStats() {
     if (!this.state.soc) {
       return (<div/>)
     }
+		let charge = this.state.charge;
+		let regained = charge.state.regained_kwh
+
+		regained = Math.floor(regained*1000)/1000
     let soc = this.state.soc.Data
     if (soc > 0.83) {
       soc = 'Full'
     }
+		let regained_pct = (soc + regained/16.5)
+		let current_miles = this.prettyRound(this.milesFromPct(soc), 2)
+		let regained_to_miles = this.prettyRound(this.milesFromPct(regained_pct), 2)
     return (
       <div>
-        <p style={socStyle}>
-          SOC: {soc}
+        <p>
+          SOC: <span style={socStyle}>{current_miles}miles</span> ({this.prettyRound(soc*100)}%)
         </p>
+        <p>
+			    EST: <span style={socStyle}>{regained_to_miles} miles</span> ({this.prettyRound(regained_pct*100)}%)
+			  </p>
+				<p>
+					<h4>Raw Stats</h4>
+				</p>
+				<p>
+					Regained: {this.prettyRound(regained)}kwh
+				</p>
         <p>
 			    Power: {this.state.power.Data}
         </p>
