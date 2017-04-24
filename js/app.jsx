@@ -79,9 +79,7 @@ class Status extends React.Component {
 
 		regained = Math.floor(regained*1000)/1000
     let soc = this.state.soc.Data
-    if (soc > 0.83) {
-      soc = 'Full'
-    }
+
 		let regained_pct = (soc + regained/16.5)
 		let current_miles = this.prettyRound(this.milesFromPct(soc), 2)
 		let regained_to_miles = this.prettyRound(this.milesFromPct(regained_pct), 2)
