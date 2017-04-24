@@ -76,6 +76,8 @@ class Status extends React.Component {
     }
 		let charge = this.state.charge;
 		let regained = charge.state.regained_kwh
+		let now = new Date()
+		let last_reported_soc = this.prettyRound(-1*(new Date(charge.state.last_reported_soc)-now)/(60*60*1000))
 
 		regained = Math.floor(regained*1000)/1000
     let soc = this.state.soc.Data
@@ -83,6 +85,7 @@ class Status extends React.Component {
 		let regained_pct = (soc + regained/16.5)
 		let current_miles = this.prettyRound(this.milesFromPct(soc), 2)
 		let regained_to_miles = this.prettyRound(this.milesFromPct(regained_pct), 2)
+		console.log(charge)
     return (
       <div>
         <p>
@@ -93,6 +96,9 @@ class Status extends React.Component {
 			  </p>
 				<p>
 					<h4>Raw Stats</h4>
+				</p>
+				<p>
+					Last SOC: {last_reported_soc}hrs ago
 				</p>
 				<p>
 					Regained: {this.prettyRound(regained)}kwh
