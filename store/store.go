@@ -34,9 +34,7 @@ func PutCarStatus(ctx context.Context, status *types.CarStatus) error {
 
 func getLastField(ctx context.Context, qry *aedatastore.Query, field string) (*types.CarStatus, error) {
 	q := qry.Order("-CreatedAt").
-		//Filter(field+" >", 0).
-		Order("-CreatedAt") //.
-		//Limit(1)
+		Limit(20) // 4x records per minute
 
 	var cm types.CarStatus
 	it := q.Run(ctx)
