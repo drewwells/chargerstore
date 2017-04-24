@@ -167,53 +167,20 @@ func TestCharge_BatteryCharging(t *testing.T) {
 }
 
 func TestCharge_regain(t *testing.T) {
-	t.Skip()
 	now := time.Now()
 	var testMap = []struct {
-		battery, power types.LastMsg
-		reg            float64
+		battery    types.LastMsg
+		power, reg float64
 	}{
 		{
 			// missing 1.5532605
 			// guessometer probably reads 30miles
 			battery: types.LastMsg{
-				Data:        0.7490196,
-				PublishTime: now.Add(-2 * time.Hour),
+				Data:        0.61568,
+				PublishTime: now.Add(-65 * time.Minute),
 			},
-			power: types.LastMsg{
-				Data: 0.700,
-			},
-			reg: 1.92,
-		},
-		{
-			battery: types.LastMsg{
-				Data:        MIN_PCT,
-				PublishTime: now.Add(-10 * time.Minute),
-			},
-			power: types.LastMsg{
-				Data: 0.700,
-			},
-			reg: 0.16,
-		},
-		{
-			battery: types.LastMsg{
-				Data:        MIN_PCT,
-				PublishTime: now.Add(-10 * time.Hour),
-			},
-			power: types.LastMsg{
-				Data: 0.700,
-			},
-			reg: 9.6,
-		},
-		{
-			battery: types.LastMsg{
-				Data:        MIN_PCT,
-				PublishTime: now.Add(-12 * time.Hour),
-			},
-			power: types.LastMsg{
-				Data: 0.700,
-			},
-			reg: float64(MAX_ENERGY),
+			power: 2.762,
+			reg:   2.992167,
 		},
 	}
 

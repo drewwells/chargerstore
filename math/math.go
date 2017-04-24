@@ -33,6 +33,8 @@ const (
 	POWER_120V_8A  = 0.40 // 0.96  // 120 * 8 / 1000
 	POWER_120V_12A = 0.6  // 1.44  // 120 * 12 / 1000
 	POWER_240V     = 1.5  // 3.312 // 240 * 13.8 / 1000
+
+	POWER_FACTOR = 0.5625
 )
 
 // Power provided in kwh
@@ -57,17 +59,17 @@ func TimeToChargePCT(currentPct float64, power float64) time.Duration {
 
 // guessRecharged, volt is terrible at reporting SOC while off. So instead
 // guess how much has been recharged
-func guessRecharged(lastBattery types.LastMsg, lastPower types.LastMsg) float64 {
+func guessRecharged(lastBattery types.LastMsg, power float64) float64 {
 	since := time.Since(lastBattery.PublishTime)
 
 	hrs := float64(since) / float64(time.Hour)
-	if lastPower.Data <= 0 {
+	if power <= 0 {
 		return 0
 	}
 
 	// energy (kwh) = power / 1000
-	pwr := lastPower.Data
-	return math.Min(pwr*hrs, MAX_ENERGY)
+	energy := power * hrs
+	return math.Min(energy, MAX_ENERGY)
 }
 
 func BatteryCharging(lastBattery types.LastMsg, lastPower types.LastMsg) types.BatteryCharging {
@@ -91,10 +93,10 @@ func BatteryCharging(lastBattery types.LastMsg, lastPower types.LastMsg) types.B
 	}
 
 	// a lot of power is lost transferring to batteries, guessing 40% loss
-	lastPower.Data = lastPower.Data * .5625
+	lastPower.Data = lastPower.Data * 0.5625
 
 	deficit := float64((MAX_PCT - currentPct) * MAX_ENERGY)
-	regained := guessRecharged(lastBattery, lastPower)
+	regained := guessRecharged(lastBattery, lastPower.Data/0.5625 /* like this makes any sense */)
 
 	// no recent SOC data, indicate so
 	estimate := time.Since(lastBattery.PublishTime) > 5*time.Minute
