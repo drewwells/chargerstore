@@ -88,18 +88,22 @@ func BatteryCharging(lastBattery types.LastMsg, lastPower types.LastMsg) types.B
 	// 1. If car reported non zero volt & amps recently <5mins, then it has
 	//    been charging since Car was turned off
 	currentPct := lastBattery.Data
-	// a lot of power is lost transferring to batteries, guessing 40% loss
-	lastPower.Data = lastPower.Data * 0.5625
 
 	deficit := float64((MAX_PCT - currentPct) * MAX_ENERGY)
-	regained := guessRecharged(lastBattery, lastPower.Data/0.5625 /* like this makes any sense */)
+	regained := guessRecharged(lastBattery, lastPower.Data /* like this makes any sense */)
 
 	// no recent SOC data, indicate so
 	estimate := time.Since(lastBattery.PublishTime) > 5*time.Minute
 
 	if regained > deficit {
 		return types.BatteryCharging{
-			Estimate: estimate,
+			State: types.ChargeState{
+				LastSOCTime: lastBattery.PublishTime,
+				Percent:     lastBattery.Data,
+				Deficit:     deficit,
+				Regained:    deficit,
+			},
+			Estimate: true,
 		}
 	}
 
@@ -114,7 +118,9 @@ func BatteryCharging(lastBattery types.LastMsg, lastPower types.LastMsg) types.B
 		Estimate: estimate,
 	}
 
-	current := TimeToCharge(estCurrent, lastPower.Data)
+	// estimates are calculated very pessimistically
+	reducedPower := lastPower.Data * 0.5625
+	current := TimeToCharge(estCurrent, reducedPower)
 	bc.Current = types.Charger{
 		Duration: current,
 		Minutes:  current.Minutes(),
