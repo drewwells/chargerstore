@@ -14,17 +14,17 @@ func init() {
 	GetCarStatus = func(ctx context.Context, deviceID string) (*types.CarStatus, error) {
 
 		bs := []byte(`{
-  "amps": {
-    "Data": 8,
-    "PublishTime": "2017-04-11T03:16:36.421Z"
+  "power": {
+    "Data": 2.783,
+    "PublishTime": "2017-04-26T16:23:55.598Z"
   },
   "soc": {
-    "Data": 0.63,
-    "PublishTime": "2017-04-11T04:02:14.364Z"
+    "Data": 0.38039215,
+    "PublishTime": "2017-04-26T13:59:48.227Z"
   },
   "volts": {
-    "Data": 122,
-    "PublishTime": "2017-04-11T04:01:43.03Z"
+    "Data": 0,
+    "PublishTime": "2017-04-26T16:23:55.746Z"
   }
 }`)
 		var cs types.CarStatus
