@@ -1,0 +1,46 @@
+{
+  "amps": {
+    "Data": 11.2,
+    "PublishTime": "2017-04-26T16:40:27.233Z"
+  },
+  "charge": {
+    "state": {
+      "last_reported_soc": "2017-04-26T16:39:23.219Z",
+      "percent": 0.8,
+      "deficit_kwh": 0.711765119999999,
+      "regained_kwh": 0.04495893672627778
+    },
+    "deficit": 0,
+    "estimate": false,
+    "published_at": "0001-01-01T00:00:00Z",
+    "current": {
+      "Duration": 2112653253936,
+      "Minutes": 35.2108875656
+    },
+    "v120_standard": {
+      "Duration": 6001255649463,
+      "Minutes": 100.02092749105
+    },
+    "v120_max": {
+      "Duration": 4000837099642,
+      "Minutes": 66.68061832736667
+    },
+    "v240": {
+      "Duration": 1600334839856,
+      "Minutes": 26.672247330933335
+    }
+  },
+  "done": "2017-04-26T17:15:55.997095317Z",
+  "power": {
+    "Data": 2.02,
+    "PublishTime": "2017-04-26T16:40:27.233Z"
+  },
+  "soc": {
+    "Data": 0.8,
+    "PublishTime": "2017-04-26T16:39:23.219Z"
+  },
+  "volts": {
+    "Data": 202,
+    "PublishTime": "2017-04-26T16:40:27.233Z"
+  }
+}
