@@ -1,5 +1,5 @@
 dist/
+build/
 app/app
 app/public
 node_modules/
-public/bundle.js

@@ -6,16 +6,12 @@ env_variables:
   PUBSUB_TOPIC: CAR
 
 handlers:
-- url: /public
-  static_dir: public
+- url: /static
+  static_dir: build/static
 
 - url: /
-  static_files: public/index.html
-  upload: public/index.html
-
-- url: /bundle.js
-  static_files: public/bundle.js
-  upload: public/bundle.js
+  static_files: build/index.html
+  upload: build/index.html
 
 - url: /.*
   script: _go_app

@@ -17,9 +17,9 @@ serve:
 	dev_appserver.py app/app.yaml
 
 deploy:
-	webpack
-	rm -rf app/public
-	cp -R public app/public
+	yarn build
+	rm -rf app/build
+	mv build app/build
 	gcloud app deploy app/app.yaml app/index.yaml
 	#cd app; gcloud app deploy index.yaml
 

@@ -76,11 +76,6 @@ func BatteryCharging(lastBattery types.LastMsg, lastPower types.LastMsg) types.B
 
 	// TODO: report errors for the various errorneous conditions
 
-	// charge exceeds maximum, all 0s for charging
-	if lastBattery.Data >= MAX_PCT {
-		return types.BatteryCharging{}
-	}
-
 	// SOC publishing usually stops shortly after car turns off
 	// So up to date SOC is not reliable.
 	//
