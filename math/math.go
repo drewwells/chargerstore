@@ -88,10 +88,6 @@ func BatteryCharging(lastBattery types.LastMsg, lastPower types.LastMsg) types.B
 	// 1. If car reported non zero volt & amps recently <5mins, then it has
 	//    been charging since Car was turned off
 	currentPct := lastBattery.Data
-	if currentPct == 0 {
-		return types.BatteryCharging{}
-	}
-
 	// a lot of power is lost transferring to batteries, guessing 40% loss
 	lastPower.Data = lastPower.Data * 0.5625
 
