@@ -1,11 +1,29 @@
 import React, { Component } from 'react'
+import Gauge from 'react-svg-gauge'
+
+const socStyle = {
+	fontSize: 18,
+	fontWeight: 'bold',
+	color: 'purple',
+}
+
+const chargeDone = {
+	borderStyle: 'solid',
+	borderWidth: 2,
+	borderColor: 'red',
+	color: 'green',
+	padding: 5,
+	textAlign: 'center',
+}
 
 class Status extends Component {
 
   constructor(props) {
     super(props);
     this.state = {
-      now: new Date()
+      now: new Date(),
+			currentMiles: 0,
+			estMiles: 0,
     };
   }
 
@@ -15,8 +33,25 @@ class Status extends Component {
 				return r.json()
 			})
       .then((r) => {
-        console.log(r.charge.state)
-        this.setState(r)
+        // this.setState(r)
+
+				let charge = r.charge;
+				let regained = charge.state.regained_kwh
+
+				regained = Math.floor(regained*1000)/1000
+				let soc = r.soc.Data
+
+				let regained_pct = (soc + regained/16.5)
+
+				let current_miles = this.prettyRound(this.milesFromPct(soc), 2)
+				let regained_to_miles = this.prettyRound(this.milesFromPct(regained_pct), 2)
+
+				this.setState(Object.assign({}, r, {
+					currentMiles: current_miles,
+					estMiles: regained_to_miles,
+					estPct: regained_pct,
+				}))
+
       })
   }
 
@@ -24,9 +59,17 @@ class Status extends Component {
   }
 
 	milesFromPct(pct) {
-		pct = pct - .2
 		let factor = 35/(0.84313728-0.2)
-		return factor * pct
+		return factor * (pct - .2)
+	}
+
+	renderGauge() {
+		return (
+			<div className="center">
+				<Gauge value={this.state.currentMiles} max={35} width={200} height={160} label="Current Miles" />
+				<Gauge value={this.state.estMiles} max={35} width={200} height={160} label="Regen Est. Miles" />
+			</div>
+		)
 	}
 
   renderChargeStatus() {
@@ -50,39 +93,23 @@ class Status extends Component {
 		let est120v = new Date(now.getTime() + c.v120_max.Minutes * minutes)
 		let est240v = new Date(now.getTime() + c.v240.Minutes * minutes)
 
-		let charge = this.state.charge;
-		let regained = charge.state.regained_kwh
-
-		regained = Math.floor(regained*1000)/1000
-    let soc = this.state.soc.Data
-
-		let regained_pct = (soc + regained/16.5)
-		let current_miles = this.prettyRound(this.milesFromPct(soc), 2)
-		let regained_to_miles = this.prettyRound(this.milesFromPct(regained_pct), 2)
-
+		let soc = this.state.soc.Data
+		let pct = soc > 83 ? this.prettyRound(soc*100) + '%' : 'Full'
 		let renderSOC = [(
-			<p>
-          SOC: <span style={socStyle}>{current_miles}miles</span> ({this.prettyRound(soc*100)}%)
+			<p key="1">
+          SOC: <span style={socStyle}>{this.state.currentMiles}miles</span> ({pct})
       </p>
 		)]
 
 		// if we're charging, show estimate power level
 		if (isCharging) {
 			renderSOC.push(
-        <p>
-			    EST: <span style={socStyle}>{regained_to_miles} miles</span> ({this.prettyRound(regained_pct*100)}%)
+        <p key="2">
+			    EST: <span style={socStyle}>{this.state.estMiles} miles</span> ({this.prettyRound(this.state.estPct*100)}%)
 			  </p>
 			)
-		}
-
-    return (
-      <div>
-        <span class="info">{this.state.charge.estimate?'SOC hasn\'t been reported in a while':''}</span>
-        <p class="">
-          {pChrg}
-        </p>
-				{renderSOC}
-				<div>
+			renderSOC.push(
+				<div key="3">
 					<hr/>
 					Charging times based on voltage input
 					<p>
@@ -92,6 +119,14 @@ class Status extends Component {
 						240V: {est240v.toLocaleString()}
 					</p>
 				</div>
+			)
+		}
+
+    return (
+      <div>
+        <span className="info">{this.state.charge.estimate?'SOC hasn\'t been reported in a while':''}</span>
+        {pChrg}
+				{renderSOC}
       </div>
     )
   }
@@ -111,15 +146,19 @@ class Status extends Component {
 		let now = new Date()
 		let charge = this.state.charge
 		let last_reported_soc = this.prettyRound(-1*(new Date(charge.state.last_reported_soc)-now)/(60*60*1000))
+
     return (
       <div>
 				<hr/>
-				<p>
-					<h4>Raw Stats</h4>
-				</p>
-				<p>
-					Last SOC: {last_reported_soc}hrs ago
-				</p>
+				<h4>Raw Stats</h4>
+				<div>
+					<p>
+						SOC: {this.prettyRound(this.state.soc.Data*100, 2)}%
+					</p>
+					<p>
+						SOC Last Reported: {last_reported_soc}hrs ago
+					</p>
+				</div>
 				<p>
 					Regained: {this.prettyRound(charge.state.regained_kwh)}kwh
 				</p>
@@ -139,26 +178,12 @@ class Status extends Component {
   render() {
     return (
       <div>
+				{this.renderGauge()}
         {this.renderChargeStatus()}
         {this.renderRawStats()}
       </div>
     )
   }
-}
-
-const socStyle = {
-	fontSize: 18,
-	fontWeight: 'bold',
-	color: 'purple',
-}
-
-const chargeDone = {
-	borderStyle: 'solid',
-	borderWidth: 2,
-	borderColor: 'red',
-	color: 'green',
-	padding: 5,
-	textAlign: 'center',
 }
 
 export default Status

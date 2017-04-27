@@ -10,8 +10,8 @@ watch: reflex
 local:
 	cd app; go build -i -v && ./app
 
-webpack:
-	webpack-dev-server
+start:
+	yarn start
 
 serve:
 	dev_appserver.py app/app.yaml

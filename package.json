@@ -4,7 +4,8 @@
   "private": true,
   "dependencies": {
     "react": "^15.5.4",
-    "react-dom": "^15.5.4"
+    "react-dom": "^15.5.4",
+    "react-svg-gauge": "^1.0.4"
   },
   "proxy": "https://particle-volt.appspot.com",
   "devDependencies": {
