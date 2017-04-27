@@ -43,8 +43,8 @@ class Status extends Component {
 
 				let regained_pct = (soc + regained/16.5)
 
-				let current_miles = this.prettyRound(this.milesFromPct(soc), 2)
-				let regained_to_miles = this.prettyRound(this.milesFromPct(regained_pct), 2)
+				let current_miles = this.prettyRound(this.milesFromPct(soc), 1)
+				let regained_to_miles = this.prettyRound(this.milesFromPct(regained_pct), 1)
 
 				this.setState(Object.assign({}, r, {
 					currentMiles: current_miles,
@@ -66,8 +66,8 @@ class Status extends Component {
 	renderGauge() {
 		return (
 			<div className="center">
-				<Gauge value={this.state.currentMiles} max={35} width={160} height={120} label="Current Miles" />
-				<Gauge value={this.state.estMiles} max={35} width={160} height={120} label="Regen Est. Miles" />
+				<Gauge value={this.state.currentMiles} max={35} width={160} height={130} label="Current Miles" />
+				<Gauge value={this.state.estMiles} max={35} width={160} height={130} label="Regen Est. Miles" />
 			</div>
 		)
 	}
@@ -95,11 +95,7 @@ class Status extends Component {
 
 		let soc = this.state.soc.Data
 		let pct = soc > 83 ? this.prettyRound(soc*100) + '%' : 'Full'
-		let renderSOC = [(
-			<p key="1">
-          SOC: <span style={socStyle}>{this.state.currentMiles}miles</span> ({pct})
-      </p>
-		)]
+		let renderSOC = []
 
 		// if we're charging, show estimate power level
 		if (isCharging) {
@@ -153,14 +149,14 @@ class Status extends Component {
 				<h4>Raw Stats</h4>
 				<div>
 					<p>
-						SOC: {this.prettyRound(this.state.soc.Data*100, 2)}%
+						SOC: {this.prettyRound(this.state.soc.Data*100, 2)}% ({this.state.currentMiles}miles)
 					</p>
 					<p>
 						SOC Last Reported: {last_reported_soc}hrs ago
 					</p>
 				</div>
 				<p>
-					Regained: {this.prettyRound(charge.state.regained_kwh)}kwh
+					Regained: {this.prettyRound(charge.state.regained_kwh)} kwh
 				</p>
         <p>
 			    Power: {this.state.power.Data} kw
