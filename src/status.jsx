@@ -66,8 +66,8 @@ class Status extends Component {
 	renderGauge() {
 		return (
 			<div className="center">
-				<Gauge value={this.state.currentMiles} max={35} width={200} height={160} label="Current Miles" />
-				<Gauge value={this.state.estMiles} max={35} width={200} height={160} label="Regen Est. Miles" />
+				<Gauge value={this.state.currentMiles} max={35} width={160} height={120} label="Current Miles" />
+				<Gauge value={this.state.estMiles} max={35} width={160} height={120} label="Regen Est. Miles" />
 			</div>
 		)
 	}
