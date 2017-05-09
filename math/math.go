@@ -29,12 +29,13 @@ const (
 	MAX_KWH = 16.5 * MAX_PCT
 	MIN_KWH = 16.5 * MIN_PCT
 
-	// Power levels reduced due to output emitted by car
-	POWER_120V_8A  = 0.40 // 0.96  // 120 * 8 / 1000
-	POWER_120V_12A = 0.6  // 1.44  // 120 * 12 / 1000
-	POWER_240V     = 1.5  // 3.312 // 240 * 13.8 / 1000
+	POWER_FACTOR = 0.85 // 0.5625 here we go again
 
-	POWER_FACTOR = 0.5625
+	// Power levels reduced due to output emitted by car
+	POWER_120V_8A  = 0.96 * POWER_FACTOR  // 0.96  // 120 * 8 / 1000
+	POWER_120V_12A = 1.44 * POWER_FACTOR  // 1.44  // 120 * 12 / 1000
+	POWER_240V     = 3.312 * POWER_FACTOR // 3.312 // 240 * 13.8 / 1000
+
 )
 
 // Power provided in kwh
@@ -107,7 +108,7 @@ func BatteryCharging(lastBattery types.LastMsg, lastPower types.LastMsg) types.B
 
 	estCurrent := MAX_ENERGY - deficit + regained
 	// estimates are calculated very pessimistically
-	reducedPower := lastPower.Data * 0.5625
+	reducedPower := lastPower.Data * POWER_FACTOR
 	current := TimeToCharge(estCurrent, reducedPower)
 	bc.Current = types.Charger{
 		Duration: current,
